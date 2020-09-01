@@ -1,0 +1,7 @@
+/dartfs/rc/lab/V/VaickusL_slow/data/MOHS
+
+# update data and generate annotations
+# -q "gpuq"
+for f in $(ls images/* | grep -v ".npy" ) ; do submit-job run_torque_job  -c "python img2npy.py --file ${f}" -a "conda activate pathflow" -ao "-A QDP-Alpha -l nodes=1:ppn=8 -l feature=v100" -t 1 -n 0  ; done
+python h5_to_npy.py
+jupyter notebook # for annotation update

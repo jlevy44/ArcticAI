@@ -1,0 +1,43 @@
+/dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/complete
+
+# update data
+for f in $(ls /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/complete/inputs | xargs -I F basename F _mask.pkl) ; do ln images/${f}.npy /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/complete/inputs ; done
+for f in $(ls /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/complete/inputs | xargs -I F basename F .annot.pkl) ; do ln images/${f}.npy /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/complete/inputs ; done
+
+# preprocess
+
+for base in $(ls inputs/*.npy | xargs -I F basename F .npy | sort ) ; do submit-job run_torque_job -c "pathflowai-preprocess preprocess_pipeline -ps 128 -ch -gtm -ta -nz -pka -odb patch_info.db --threshold 0.1 --preprocess --patches --basename $base --input_dir inputs/ --intensity_threshold 45. -a Complete -a Incomplete_Section -a Incomplete_Area" -a "conda activate pathflow" -ao "-A Brock -l nodes=1:ppn=8" -t 1 -n 0 ; done
+for base in $(ls inputs/*.npy | xargs -I F basename F .npy | sort ) ; do submit-job run_torque_job -c "pathflowai-preprocess preprocess_pipeline -ps 256 -ch -gtm -ta -nz -pka -odb patch_info.db --threshold 0.1 --preprocess --patches --basename $base --input_dir inputs/ --intensity_threshold 45. -a Complete -a Incomplete_Section -a Incomplete_Area" -a "conda activate pathflow" -ao "-A Brock -l nodes=1:ppn=8" -t 1 -n 0 ; done
+
+# update SQL
+
+# extract imagenet
+singularity  shell --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img
+export PATH=/dartfs-hpc/rc/home/w/f003k8w/.local/bin:/dartfs-hpc/rc/home/w/f003k8w/.local/lib/python3.7/site-packages/:$PATH
+
+for i in $(seq 8 11) ; do python launch_feature_extraction.py --ID ${i} & done #...
+for i in $(seq 0 7) ; do python launch_feature_extraction.py --ID ${i} --patch_size 256 --out_dir imagenet_embeddings_256/ & done #...
+for i in $(seq 8 15) ; do python launch_feature_extraction.py --ID ${i} --patch_size 256 --out_dir imagenet_embeddings_256/ & done #...
+for i in $(seq 16 23) ; do python launch_feature_extraction.py --ID ${i} --patch_size 256 --out_dir imagenet_embeddings_256/ & done #...
+
+
+# create graph
+singularity  exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img jupyter notebook  --no-browser --ip 127.0.0.1 --port 4444
+
+# train graph model
+python -m visdom.server -port 4444 --hostname localhost
+
+
+#### OLD
+gpu=0
+export PATH=/mnt/.local/bin:/mnt/.local/lib/python3.7/site-packages/:$PATH
+
+for f in $(ls inputs/*.npy | xargs -I F basename F .npy) ; do pathflowai-train_model train_model -gpu ${gpu} --npy_file inputs/${f}.npy  --prediction_output_dir imagenet_embeddings/ -ee --prediction -olf bce -ca --patch_size 128  --pos_annotation_class "Incomplete_Area" -oa "Complete_Area"  -pr 224 --save_location .pkl -a resnet18 --input_dir inputs/ -bs 32 -nt 1 --mt_bce -lr 1e-4 -ne 25 -pi patch_info_update.db ; done
+
+singularity  shell --nv -W /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img
+
+pathflowai-train_model train_model -gpu ${gpu} --npy_file inputs/${f}.npy  --prediction_output_dir imagenet_embeddings/ -ee --prediction -olf bce -ca --patch_size 128  --pos_annotation_class "Incomplete_Area" -oa "Complete_Area"  -pr 224 --save_location .pkl -a resnet18 --input_dir inputs/ -bs 32 -nt 1 --mt_bce -lr 1e-4 -ne 25 -pi patch_info.db
+
+# for f in $(comm -3 <( ls inputs/*.npy | xargs -I F basename F .npy | sort ) <(ls no_pretrain_embeddings/*.pkl | xargs -I F basename F .pkl | sort) | awk "NR % ${dx} == ${n}") ; do nohup  pathflowai-train_model train_model -gpu ${gpu} --npy_file inputs/${f}.npy  --prediction_output_dir no_pretrain_embeddings/ -ee --prediction -olf bce -ca --patch_size 256  --pos_annotation_class "0"  -pr 224 --save_location imagenet_pretrained_model.pkl -a resnet18 --input_dir inputs/ -bs 32 -nt 1 --mt_bce -lr 1e-4 -ne 25 -pi patch_info_new_fixed2.db & done
+f=105_A1c
+pathflowai-train_model train_model -gpu ${gpu} --npy_file inputs/${f}.npy  --prediction_output_dir imagenet_embeddings/ -ee --prediction -olf bce -ca --patch_size 128  --pos_annotation_class "Incomplete_Area" -oa "Complete_Area"  -pr 224 --save_location .pkl -a resnet18 --input_dir inputs/ -bs 32 -nt 1 --mt_bce -lr 1e-4 -ne 25 -pi patch_info_update.db
