@@ -12,5 +12,18 @@ for base in $(ls inputs/*.npy | xargs -I F basename F .npy | sort ) ; do submit-
 
 # new run
 for base in $(ls inputs/*.npy | xargs -I F basename F .npy | sort ) ; do submit-job run_torque_job  -c "pathflowai-preprocess preprocess_pipeline -ta -ps 256 -gtm -nz -pka -odb patch_info_new.db --threshold 0.1 --preprocess --patches --basename $base --input_dir inputs/  --intensity_threshold 45. -a Benign -a Cancer" -a "conda activate pathflow" -ao "-A QDP-Alpha -l feature=v100 -l nodes=1:ppn=8" -t 1 -n 0 ; done
-
 for base in $(ls bcc/inputs/*.npy | xargs -I F basename F .npy | sort ) ; do submit-job run_torque_job  -c "singularity  exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img python extract_features.py --ID ${base} --patch_size 256 --out_dir imagenet_embeddings_256_new/ " -a "conda activate pathflow" -ao "-A QDP-Alpha -l feature=v100 -l nodes=1:ppn=8" -t 1 -n 0 ; done
+
+# pretrain embeddings
+singularity shell --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img
+export PATH=/mnt/.local/bin:/mnt/.local/lib/python3.7/site-packages/:$PATH
+
+singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img python PathPretrain/train_model.py --tensor_dataset True --inputs_dir bcc/tensor_data/ --checkpoints_dir bcc/pretrain_checkpoints/ --num_classes 2 --verbose True --batch_size 32 --model_save_loc bcc/pretrain_model.pth --gpu_id 0
+
+--mean [0.82115865, 0.59940976, 0.8223373] --std [0.1888887, 0.22270389, 0.14998639]
+
+[d.tensors[0][:,i,...].mean().unsqueeze(0).numpy()[0] for i in range(3)]
+[d.tensors[0][:,i,...].std().unsqueeze(0).numpy()[0] for i in range(3)]
+singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img python PathPretrain/train_model.py --tensor_dataset True --inputs_dir bcc/tensor_data/ --checkpoints_dir bcc/pretrain_checkpoints2/ --num_classes 2 --verbose True --batch_size 512 --model_save_loc bcc/pretrain_model.pth --gpu_id 0 --mean [0.82115865, 0.59940976, 0.8223373] --std [0.1888887, 0.22270389, 0.14998639]
+
+for f in $(ls bcc/inputs/*.npy | xargs -I F basename F .npy | sort ); do export gpu=$(( ( RANDOM % 4 )  )) && submit-job run_torque_job -c "singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img python PathPretrain/train_model.py --tensor_dataset False --inputs_dir bcc/tensor_data/ --checkpoints_dir bcc/pretrain_checkpoints/ --num_classes 2 --verbose True --batch_size 32 --model_save_loc bcc/pretrain_model.pth --gpu_id ${gpu} --embedding_out_dir bcc/embeddings_pretrain/ --extract_embeddings_df bcc/patch_info_update.db --extract_embeddings bcc/inputs/${f}.npy --predict True" -ao "-A QDP-Alpha -l nodes=1:ppn=8 -l feature=v100" -t 1 -n 0 -q "gpuq" ; done
