@@ -1,0 +1,4 @@
+/dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/nuclei_pipeline
+
+k=128
+nohup singularity exec --nv  -B /scratch/ -B $(realpath ..)  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img python ../PathPretrain/train_model.py  --inputs_dir inputs/ --checkpoints_dir seg_model/ --num_classes 2 --verbose 0 --batch_size ${k} --model_save_loc seg_model.pkl --gpu_id 0 --tensor_dataset True --semantic_segmentation True --class_balance False &
