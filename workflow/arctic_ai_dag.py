@@ -1,11 +1,10 @@
 import datetime as dt
-
 from airflow import DAG
+from airflow.models import Variable
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from submit_hpc.job_runner import run_torque_job_
 import glob, os
-from airflow.models import Variable
 
 TMP_SINGULARITY_EXPORTS="export SINGULARITYENV_CUDA_VISIBLE_DEVICES=\${gpuNum} && export SINGULARITYENV_PREPEND_PATH=/dartfs-hpc/rc/home/w/f003k8w/.local/bin/ && singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img"
 TMP_ADDITIONAL_OPTIONS="-A QDP-Alpha -l nodes=1:ppn=8:gpus=1 -l feature=v100"
@@ -39,8 +38,6 @@ def compile_run_command(name, **kwargs):
 
 def slide_done(basename):
     print(f"{basename} complete")
-
-
 
 def create_dag(patient):
     default_args = {
