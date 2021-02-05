@@ -45,6 +45,7 @@ def create_dag(patient):
         'start_date': dt.datetime(2017, 6, 1),
         'retries': 1,
         'retry_delay': dt.timedelta(minutes=15),
+        'run_as_user': 'tmp_user'
     }
     dag= DAG(f'airflow_arctic_ai_patient_{patient}',
              default_args=default_args,
@@ -114,3 +115,4 @@ def create_dag(patient):
 patients=np.unique(np.vectorize(lambda x: os.path.basename(x)[:6])(glob.glob("inputs/*.npy")))
 for patient in patients:
     globals()[patient] = create_dag(patient)
+    # instead read a database
