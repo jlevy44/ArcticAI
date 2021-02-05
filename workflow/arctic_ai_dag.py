@@ -110,6 +110,7 @@ def create_dag(patient):
         [tasks[f'{i}_slide_done'] for i in range(len(IDs))] >> tasks['dump_results']
     return dag
 
-patient = Variable.get('patient', default_var='')
-
-globals()[patient] = create_dag(patient)
+# patient = Variable.get('patient', default_var='')
+patients=np.unique(np.vectorize(lambda x: os.path.basename(x)[:6])(glob.glob("inputs/*.npy")))
+for patient in patients:
+    globals()[patient] = create_dag(patient)
