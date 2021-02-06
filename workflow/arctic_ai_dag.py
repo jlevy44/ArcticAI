@@ -5,6 +5,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from submit_hpc.job_runner import run_torque_job_
 import glob, os
+import numpy as np
 
 TMP_SINGULARITY_EXPORTS="export SINGULARITYENV_CUDA_VISIBLE_DEVICES=\${gpuNum} && export SINGULARITYENV_PREPEND_PATH=/dartfs-hpc/rc/home/w/f003k8w/.local/bin/ && singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img"
 TMP_ADDITIONAL_OPTIONS="-A QDP-Alpha -l nodes=1:ppn=8:gpus=1 -l feature=v100"
@@ -115,4 +116,5 @@ def create_dag(patient):
 patients=np.unique(np.vectorize(lambda x: os.path.basename(x)[:6])(glob.glob("inputs/*.npy")))
 for patient in patients:
     globals()[patient] = create_dag(patient)
-    # instead read a database
+    # READ DATABASE
+    # ADD DZI Steps
