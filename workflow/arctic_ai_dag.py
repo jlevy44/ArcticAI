@@ -5,6 +5,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from submit_hpc.job_runner import run_torque_job_
 import glob, os
+import numpy as np
 
 TMP_SINGULARITY_EXPORTS="export SINGULARITYENV_CUDA_VISIBLE_DEVICES=\${gpuNum} && export SINGULARITYENV_PREPEND_PATH=/dartfs-hpc/rc/home/w/f003k8w/.local/bin/ && singularity exec --nv -B /dartfs/rc/lab/V/VaickusL_slow/  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img"
 TMP_ADDITIONAL_OPTIONS="-A QDP-Alpha -l nodes=1:ppn=8:gpus=1 -l feature=v100"
@@ -51,7 +52,7 @@ def create_dag(patient):
              )
     with dag:
 
-        IDs=list(map(lambda f: os.path.basename(f).replace(".npy",""),glob.glob(f"inputs/{patient}*.npy")))
+        IDs=list(map(lambda f: os.path.basename(f).replace(".npy",""),glob.glob(f"../../workflow_automation/inputs/{patient}*.npy")))
 
         tasks=dict()
         for i,ID in enumerate(IDs):
@@ -99,18 +100,18 @@ def create_dag(patient):
                                                         kwargs=dict(patient=patient,
                                                                 scheme="2/1"))) # fix scheme
 
-        for i,ID in IDs:
+        for i,ID in enumerate(IDs):
             tasks[f'{i}_preprocess'] >> [tasks[f'{i}_cnn_predict_tumor'],tasks[f'{i}_cnn_predict_macro'],tasks[f'{i}_nuclei_predict'],tasks[f'{i}_ink_detect']]
             for analysis_type in ['macro','tumor']:
                 tasks[f'{i}_cnn_predict_{analysis_type}']>>tasks[f'{i}_gnn_predict_{analysis_type}']
             [tasks[f'{i}_gnn_predict_{analysis_type}'] for analysis_type in ['tumor','macro']]>> tasks[f'{i}_quality_score']
 
-            tasks['quality_score'] << [tasks['cnn_predict'],tasks['gnn_predict']]
-            [tasks['nuclei_predict'],tasks['ink_detect'],tasks['quality_score']] >> tasks[f'{i}_slide_done']
+            tasks[f'{i}_quality_score'] << [tasks[f'{i}_gnn_predict_macro'],tasks[f'{i}_gnn_predict_tumor']]
+            [tasks[f'{i}_nuclei_predict'],tasks[f'{i}_ink_detect'],tasks[f'{i}_quality_score']] >> tasks[f'{i}_slide_done']
         [tasks[f'{i}_slide_done'] for i in range(len(IDs))] >> tasks['dump_results']
     return dag
 
 # patient = Variable.get('patient', default_var='')
-patients=np.unique(np.vectorize(lambda x: os.path.basename(x)[:6])(glob.glob("inputs/*.npy")))
+patients=np.unique(np.vectorize(lambda x: os.path.basename(x)[:6])(glob.glob("../../workflow_automation/inputs/*.npy")))
 for patient in patients:
     globals()[patient] = create_dag(patient)
