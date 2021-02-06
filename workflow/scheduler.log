@@ -23,3 +23,4 @@ ___  ___ |  / _  /   _  __/ _  / / /_/ /_ |/ |/ /
 [2021-02-06 00:41:54,760] {settings.py:52} INFO - Configured default timezone Timezone('UTC')
 [2021-02-06 00:42:10,429] {scheduler_job.py:1751} INFO - Resetting orphaned tasks for active dag runs
 [2021-02-06 00:47:10,478] {scheduler_job.py:1751} INFO - Resetting orphaned tasks for active dag runs
+[2021-02-06 00:52:10,524] {scheduler_job.py:1751} INFO - Resetting orphaned tasks for active dag runs
