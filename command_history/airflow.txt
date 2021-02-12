@@ -2,7 +2,9 @@
 # set up airflow -> airflow via conda first, then pip airflow, then mysqlclient, then submit_hpc
 pip install apache-airflow --upgrade
 conda activate airflow
+export C_FORCE_ROOT='true'
 export AIRFLOW_HOME=/dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/ArcticAI_Prototype/workflow/airflow
+cd /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/ArcticAI_Prototype/workflow
 https://rc.dartmouth.edu/index.php/hrf_faq/accessing-your-research-mysql-database/
 https://www.hpc.iastate.edu/guides/containers/mysql-server
 singularity pull --name mysql.simg shub://ISU-HPC/mysql
@@ -13,7 +15,7 @@ nano /dartfs-hpc/rc/home/w/f003k8w/.my.cnf
 singularity run instance://mysql
 singularity exec instance://mysql create_remote_admin_user.sh
 username: remote_usr
-password: Lk9r9U0-
+password: oa51aQ0T
 #sql_alchemy_conn = mysql://root:airflow@localhost/airflow?unix_socket=/dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/prototype/ArcticAI_Prototype/workflow/mysql/run/mysqld/mysqld.sock
 nano airflow/airflow.cfg
 sql_alchemy_conn = mysql+mysqldb://remote_usr:Lk9r9U0-@localhost/airflow?unix_socket=mysql/run/mysqld/mysqld.sock
