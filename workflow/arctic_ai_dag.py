@@ -49,7 +49,7 @@ def create_dag(patient):
         'retry_delay': dt.timedelta(minutes=15),
         'run_as_user': 'tmp_user'
     }
-    dag= DAG(f'airflow_arctic_ai_patient_{patient}',
+    dag= DAG(f'airflow_arctic_ai_test_patient_{patient}',
              default_args=default_args,
              )
     with dag:
