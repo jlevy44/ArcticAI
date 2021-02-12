@@ -20,20 +20,19 @@ def compile_command(name,**kwargs):
 
 def run_torque_job(command):
     command=f"{TMP_SINGULARITY_EXPORTS} arctic_ai {command}"
-    print(command)
-    # run_torque_job_(command,
-    #                 use_gpu=False,
-    #                 additions=[],
-    #                 queue=TMP_QUEUE,
-    #                 time=TMP_TIME,
-    #                 ngpu=TMP_NGPU,
-    #                 additional_options=TMP_ADDITIONAL_OPTIONS,
-    #                 self_gpu_avail=False,
-    #                 imports=[],
-    #                 monitor_job=True,
-    #                 user=TMP_USER,
-    #                 sleep=TMP_SLEEP,
-    #                 verbose=True)
+    run_torque_job_(command,
+                    use_gpu=False,
+                    additions=[],
+                    queue=TMP_QUEUE,
+                    time=TMP_TIME,
+                    ngpu=TMP_NGPU,
+                    additional_options=TMP_ADDITIONAL_OPTIONS,
+                    self_gpu_avail=False,
+                    imports=[],
+                    monitor_job=True,
+                    user=TMP_USER,
+                    sleep=TMP_SLEEP,
+                    verbose=True)
 
 def compile_run_command(name, **kwargs):
     run_torque_job(compile_command(name, **kwargs))
