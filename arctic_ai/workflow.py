@@ -45,6 +45,7 @@ def run_workflow_series(basename, compression):
 
 
 def run_series(patient="163_A1",
+               input_dir="inputs",
                scheme="2/1",
                compression=1.):
     for f in glob.glob(os.path.join(input_dir,f"{patient}*.npy")):
