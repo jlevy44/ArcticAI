@@ -1,7 +1,6 @@
 from torch_cluster import nearest
 import sys, os, torch, numpy as np, pandas as pd
 from sklearn.preprocessing import LabelEncoder, LabelBinarizer
-sys.path.insert(0,os.path.join(os.path.dirname(arctic_ai.__file__),"dgm"))
 from dgm.dgm import DGM
 from umap import UMAP
 import pickle
