@@ -23,4 +23,5 @@ setup(name='arctic_ai',
       long_description=long_description,
       long_description_content_type='text/markdown',
       packages=['arctic_ai'],
-      install_requires=PACKAGES)
+      install_requires=PACKAGES,
+      package_data={'arctic_ai': ['dgm/dgm/*']})
