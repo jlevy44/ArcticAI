@@ -10,6 +10,9 @@ def create_graph_data(basename="163_A1a",
                       analysis_type="tumor",
                       radius=256,
                       min_component_size=600):
+
+    os.makedirs("graph_datasets",exist_ok=True)
+
     embeddings=torch.load(f"cnn_embeddings/{basename}_{analysis_type}_map.pkl")
     xy=torch.tensor(embeddings['patch_info'][['x','y']].values).float().cuda()
     X=torch.tensor(embeddings['embeddings'])

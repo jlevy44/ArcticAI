@@ -21,6 +21,8 @@ class WSI_Dataset(Dataset):
 
 def predict_nuclei(basename="163_A1a",
                    gpu_id=0):
+    os.makedirs("nuclei_results",exist_ok=True)
+    
     analysis_type="tumor"
     patch_size=256
     patch_info_file,npy_file=f"patches/{basename}_{analysis_type}_map.pkl",f"patches/{basename}_{analysis_type}_map.npy"

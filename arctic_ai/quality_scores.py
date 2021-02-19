@@ -72,6 +72,10 @@ def calc_tumor_vals(dgm_result,weights={'dermis':1,'epidermis':1,'subcutaneous t
     return tumor_share2
 
 def generate_quality_scores(basename):
+
+    os.makedirs("mapper_graphs",exist_ok=True)
+    os.makedirs("quality_scores",exist_ok=True)
+
     graphs={k:torch.load(os.path.join("gnn_results",f"{basename}_{k}_map.pkl")) for k in ['tumor','macro']}
     graphs['tumor']=[relabel_tumor(graph_tumor,graph_macro) for graph_tumor,graph_macro in zip(graphs['tumor'],graphs['macro'])]
 

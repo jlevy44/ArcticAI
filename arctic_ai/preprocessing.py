@@ -8,6 +8,9 @@ def preprocess(basename="163_A1a",
                threshold=0.05,
                patch_size=256):
 
+    os.makedirs("masks",exist_ok=True)
+    os.makedirs("patches",exist_ok=True)
+
     image=f"inputs/{basename}.npy"
     basename=os.path.basename(image).replace('.npy','')
     image=np.load(image)

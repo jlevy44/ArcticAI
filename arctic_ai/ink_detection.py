@@ -42,6 +42,9 @@ def get_edges(mask):
 
 def detect_inks(basename="163_A1a",
                 compression=8):
+
+    os.makedirs("detected_inks",exist_ok=True)
+
     img,mask=np.load(f"inputs/{basename}.npy"),np.load(f"masks/{basename}_macro_map.npy")
     img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)

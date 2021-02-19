@@ -234,6 +234,7 @@ class Case:
 
     def extract2dzi(self, image_type='image', scheduler='single-threaded'):
         assert image_type in ['image','nuclei','tumor','ink']
+        os.makedirs("dzi_files",exist_ok=True)
         dzi_files=[]
         imgs={}
         for block in tqdm.trange(1,self.n_blocks+1, desc='block'):

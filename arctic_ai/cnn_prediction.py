@@ -37,6 +37,9 @@ class CustomDataset(Dataset):
 def generate_embeddings(basename="163_A1a",
                         analysis_type="tumor",
                        gpu_id=0):
+
+    os.makedirs("cnn_embeddings",exist_ok=True)
+
     patch_info_file,npy_file=f"patches/{basename}_{analysis_type}_map.pkl",f"patches/{basename}_{analysis_type}_map.npy"
     models={k:f"models/{k}_map_cnn.pth" for k in ['macro','tumor']}
     num_classes=dict(macro=4,tumor=3)

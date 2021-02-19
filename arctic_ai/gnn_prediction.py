@@ -45,6 +45,9 @@ class GCNFeatures(torch.nn.Module):
 def predict(basename="163_A1a",
             analysis_type="tumor",
             gpu_id=0):
+
+    os.makedirs("gnn_results",exist_ok=True)
+
     hidden_topology=dict(tumor=[32,64,64],macro=[32,64,64])#[32]*3
     num_classes=dict(macro=4,tumor=3)
     if gpu_id>=0: torch.cuda.set_device(gpu_id)
