@@ -9,7 +9,7 @@ from .compile_results import dump_results
 from .dzi_writer import npy2dzi
 from .case_prototype import Case
 
-def run_workflow_series(basename, inputs_dir, compression):
+def run_workflow_series(basename, compression):
     print(f"{basename} preprocessing")
     preprocess(basename=basename,
                threshold=0.05,
@@ -45,14 +45,12 @@ def run_workflow_series(basename, inputs_dir, compression):
 
 
 def run_series(patient="163_A1",
-               input_dir="inputs",
                scheme="2/1",
                compression=1.):
-    for f in glob.glob(os.path.join(inputs_dir,f"{patient}*.npy")):
+    for f in glob.glob(os.path.join(input_dir,f"{patient}*.npy")):
         run_workflow_series(os.path.basename(f).replace(".npy",""),
-                            inputs_dir,
                             compression)
-        
+
     dump_results(patient,scheme)
     case=Case(patient=patient)
     for k in ['image','nuclei','tumor','ink']:
