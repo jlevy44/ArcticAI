@@ -1,1 +1,1 @@
-include *.py
+include arctic_ai/dgm/dgm/*.py
