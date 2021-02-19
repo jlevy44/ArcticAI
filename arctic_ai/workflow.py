@@ -19,7 +19,7 @@ def run_workflow_series(basename, compression):
         print(f"{basename} {k} embedding")
         generate_embeddings(basename=basename,
                             analysis_type=k,
-                           gpu_id=0)
+                           gpu_id=-1)
 
         print(f"{basename} {k} build graph")
         create_graph_data(basename=basename,
@@ -30,7 +30,7 @@ def run_workflow_series(basename, compression):
         print(f"{basename} {k} gnn predict")
         predict(basename=basename,
                 analysis_type=k,
-                gpu_id=0)
+                gpu_id=-1)
 
     print(f"{basename} quality assessment")
     generate_quality_scores(basename)
@@ -41,7 +41,7 @@ def run_workflow_series(basename, compression):
 
     print(f"{basename} nuclei detection")
     predict_nuclei(basename=basename,
-                   gpu_id=0)
+                   gpu_id=-1)
 
 
 def run_series(patient="163_A1",
