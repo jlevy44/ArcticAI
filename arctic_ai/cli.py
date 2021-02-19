@@ -52,6 +52,14 @@ class Commands(object):
         from compile_results import dump_results
         dump_results(patient,scheme)
 
+    def run_series(self,
+                   patient="163_A1",
+                   input_dir="inputs",
+                   scheme="2/1",
+                   compression=1.):
+        from workflow import run_series
+        run_series(patient,input_dir,scheme,compression)
+
 def main():
     fire.Fire(Commands)
 
