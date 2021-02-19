@@ -5,8 +5,8 @@ from skimage.morphology import disk
 import numpy as np, pandas as pd, copy
 import sys,os,cv2
 from itertools import product
-sys.path.insert(0,os.path.abspath('.'))
-from filters import filter_red_pen, filter_blue_pen, filter_green_pen
+# sys.path.insert(0,os.path.abspath('.'))
+from .filters import filter_red_pen, filter_blue_pen, filter_green_pen
 
 def filter_yellow(img): # https://www.learnopencv.com/color-spaces-in-opencv-cpp-python/
     img_hsv=cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
