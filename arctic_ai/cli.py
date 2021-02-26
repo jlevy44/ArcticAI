@@ -56,9 +56,10 @@ class Commands(object):
                    patient="163_A1",
                    input_dir="inputs",
                    scheme="2/1",
-                   compression=1.):
+                   compression=1.,
+                   overwrite=True):
         from arctic_ai.workflow import run_series
-        run_series(patient,input_dir,scheme,compression)
+        run_series(patient,input_dir,scheme,compression,overwrite)
 
 def main():
     fire.Fire(Commands)
