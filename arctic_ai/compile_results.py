@@ -1,6 +1,7 @@
 import glob,pickle, numpy as np, os
 
 def dump_results(patient="163_A1",scheme="2/1"):
+    os.makedirs("results",exist_ok=True)
     n_sections_per_slide,n_blocks_per_section=np.array(scheme.split("/")).astype(int)
     images=sorted(glob.glob(f"inputs/{patient}*.npy"))
     image_ids=np.vectorize(lambda x: os.path.basename(x).replace(".npy",""))(images)
