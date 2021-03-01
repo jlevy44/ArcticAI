@@ -1,4 +1,4 @@
-import glob,pickle, numpy as np
+import glob,pickle, numpy as np, os
 
 def dump_results(patient="163_A1",scheme="2/1"):
     n_sections_per_slide,n_blocks_per_section=np.array(scheme.split("/")).astype(int)
