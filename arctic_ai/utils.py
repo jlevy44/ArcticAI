@@ -1,8 +1,10 @@
-def tif2npy(in_file,out_dir):
+def tif2npy(in_file,out_dir,overwrite=False):
     import os, numpy as np
     import tifffile
     basename,ext=os.path.splitext(os.path.basename(in_file))
-    np.save(os.path.join(out_dir,f"{basename}.npy"),tifffile.imread(in_file))
+    out_file=os.path.join(out_dir,f"{basename}.npy")
+    if not os.path.exists(out_file) or overwrite:
+        np.save(out_file,tifffile.imread(in_file))
 
 def display_results(out_graphs,res_,predict=False,custom_colors=[],s=1,img=None,alpha=None,scatter=True,scale=8,width_scale=20,node_scale=90,preds=None):
     import matplotlib
