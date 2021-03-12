@@ -1,19 +1,22 @@
-
-import matplotlib
-import networkx as nx
-%matplotlib inline
-matplotlib.rcParams['figure.dpi']=300
-matplotlib.rcParams['axes.grid'] = False
-import matplotlib.pyplot as plt
-import cv2
-from arctic_ai.dgm.dgm.plotting import *
-import copy
+def tif2npy(in_file,out_dir):
+    import os, numpy as np
+    import tifffile
+    basename,ext=os.path.splitext(os.path.basename(in_file))
+    np.save(os.path.join(out_dir,f"{basename}.npy"),tifffile.imread(in_file))
 
 def display_results(out_graphs,res_,predict=False,custom_colors=[],s=1,img=None,alpha=None,scatter=True,scale=8,width_scale=20,node_scale=90,preds=None):
+    import matplotlib
+    import networkx as nx
+    matplotlib.rcParams['figure.dpi']=300
+    matplotlib.rcParams['axes.grid'] = False
+    import matplotlib.pyplot as plt
+    import cv2, numpy as np, pandas as pd
+    from arctic_ai.dgm.dgm.plotting import *
+    import copy
+
     f = plt.figure(figsize=(15,15))
     ax = f.add_subplot(1, 1, 1)
     binary=False
-
     if not isinstance(img,type(None)): plt.imshow(np.transpose(img,(1,0,2)))
 
     for out_graph,res,pred in zip(out_graphs,res_,preds):
@@ -48,6 +51,7 @@ def display_results(out_graphs,res_,predict=False,custom_colors=[],s=1,img=None,
 def plot_results(basename="163_A1c",
                  compression=4,
                  k='macro'):
+    import cv2, numpy as np, pandas as pd
     img=np.load(f"inputs/{basename}.npy")
     im=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mapper_graphs=pd.read_pickle(f"mapper_graphs/{basename}.pkl")
