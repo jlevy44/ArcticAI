@@ -30,7 +30,7 @@ def run_workflow_series(basename, compression, overwrite):
 
     out_files=generate_output_file_names(basename)
 
-    times=[]
+    times=dict()
     times['start']=time.time()
 
     if not files_exist_overwrite(overwrite,out_files['preprocess']):
