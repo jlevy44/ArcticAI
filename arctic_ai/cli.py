@@ -57,9 +57,17 @@ class Commands(object):
                    input_dir="inputs",
                    scheme="2/1",
                    compression=1.,
-                   overwrite=True):
+                   overwrite=True,
+                   record_time=False,
+                   extract_dzi=False):
         from arctic_ai.workflow import run_series
-        run_series(patient,input_dir,scheme,compression,overwrite)
+        run_series(patient,input_dir,scheme,compression,overwrite,record_time,extract_dzi)
+
+    def tif2npy(self,
+                in_file='',
+                out_dir='./'):
+        from arctic_ai.utils import tif2npy
+        tif2npy(in_file,out_dir)
 
 def main():
     fire.Fire(Commands)
