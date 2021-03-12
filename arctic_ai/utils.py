@@ -11,7 +11,7 @@ def display_results(out_graphs,res_,predict=False,custom_colors=[],s=1,img=None,
     matplotlib.rcParams['axes.grid'] = False
     import matplotlib.pyplot as plt
     import cv2, numpy as np, pandas as pd
-    from arctic_ai.dgm.dgm.plotting import *
+    # from arctic_ai.dgm.dgm.plotting import *
     import copy
 
     f = plt.figure(figsize=(15,15))
