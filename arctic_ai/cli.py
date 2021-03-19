@@ -69,6 +69,15 @@ class Commands(object):
         from arctic_ai.utils import tif2npy
         tif2npy(in_file,out_dir)
 
+    def extract_dzis(self,
+                     patient='163_A1',
+                     overwrite_scheme='',
+                     types=['image','tumor','macro']):
+        from arctic_ai.case_prototype import Case
+        case=Case(patient=patient,overwrite_scheme=overwrite_scheme)
+        for k in types:
+            case.extract2dzi(k)
+
 def main():
     fire.Fire(Commands)
 

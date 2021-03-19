@@ -35,10 +35,11 @@ def mask2label(mask,compression=8):
     return label
 
 class Case:
-    def __init__(self, patient="163_A1"):
+    def __init__(self, patient="163_A1", overwrite_scheme=''):
         self.launch_dir=os.path.abspath(".")
         self.patient=patient
         self.results=pd.read_pickle(f"results/{patient}.pkl")
+        if overwrite_scheme: self.results['n_sections_per_slide'],self.results['n_blocks_per_section']=np.array(overwrite_scheme.split("/")).astype(int)
         self.slide_metadata,self.section_metadata=self.add_metadata(self.results)
         self.n_slides=self.results['n_slides']
         self.slide_cache=self.slide_metadata.copy()
@@ -54,7 +55,8 @@ class Case:
         self.extraction_methods=dict(image=self.extract_section_image,
                                     tumor=self.extract_tumor_results,
                                     ink=self.extract_ink_results,
-                                    nuclei=self.extract_nuclei_results)
+                                    nuclei=self.extract_nuclei_results,
+                                    macro=self.extract_macro_results)
         for k in self.extraction_methods.keys(): self.section_cache[f"{k}_dzi"]=''
 
 
@@ -132,7 +134,7 @@ class Case:
         if not isinstance(self.slide_cache.loc[slide_loc,'tumor_gnn_results'],np.ndarray):
             graphs=torch.load(self.slide_cache.loc[slide_loc,'tumor_gnn_results'])
             xy=np.vstack([graph['xy'] for graph in graphs]).astype(int)
-            y_pred=softmax(np.vstack([graph['y_pred'] for graph in graphs]),1)[:,1].reshape(-1,1)
+            y_pred=softmax(np.vstack([graph['y_pred'] for graph in graphs]),1)[:,2].reshape(-1,1)
             img_=self.load_slide(slide)[0].copy()
             one_square=np.ones((patch_size,patch_size)).astype(np.float)*255
             for x,y,pred in tqdm.tqdm(np.hstack([xy,y_pred]).tolist(), desc='tumor'):
@@ -140,6 +142,22 @@ class Case:
                 img_[x:x+patch_size,y:y+patch_size]=alpha*cv2.applyColorMap(np.uint8(pred*one_square), cv2.COLORMAP_JET)+(1-alpha)*img_[x:x+patch_size,y:y+patch_size]
             self.slide_cache.loc[slide_loc,'tumor_gnn_results']=[img_]
         else: img_=self.slide_cache.loc[slide_loc,'tumor_gnn_results']
+        return img_
+
+    def load_macro_map(self, slide, alpha=0.1, patch_size=256, low_res=True):
+        assert low_res, "High resolution label propagation completed, but not available as an option yet"
+        slide_loc=self.get_slide_loc(slide)
+        if not isinstance(self.slide_cache.loc[slide_loc,'macro_gnn_results'],np.ndarray):
+            graphs=torch.load(self.slide_cache.loc[slide_loc,'macro_gnn_results'])
+            xy=np.vstack([graph['xy'] for graph in graphs]).astype(int)
+            y_pred=softmax(np.vstack([graph['y_pred'] for graph in graphs]),1)[:,1].reshape(-1,1)
+            img_=self.load_slide(slide)[0].copy()
+            one_square=np.ones((patch_size,patch_size)).astype(np.float)*255
+            for x,y,pred in tqdm.tqdm(np.hstack([xy,y_pred]).tolist(), desc='tumor'):
+                x,y=map(int,[x,y])
+                img_[x:x+patch_size,y:y+patch_size]=alpha*cv2.applyColorMap(np.uint8(pred*one_square), cv2.COLORMAP_JET)+(1-alpha)*img_[x:x+patch_size,y:y+patch_size]
+            self.slide_cache.loc[slide_loc,'macro_gnn_results']=[img_]
+        else: img_=self.slide_cache.loc[slide_loc,'macro_gnn_results']
         return img_
 
     def load_ink(self, slide):
@@ -164,6 +182,17 @@ class Case:
         _,mask,label=self.load_slide(slide_id,compression)
         xmin,ymin,xmax,ymax=self.get_section_bbox(slide_id,label_id)
         tumor_map=self.load_tumor_map(slide_id, alpha=alpha, patch_size=patch_size, low_res=low_res)
+
+        img=tumor_map[xmin:xmax,ymin:ymax].copy()
+        img[label[xmin:xmax,ymin:ymax]!=label_id]=255
+        return img
+
+    def extract_macro_results(self, depth, block_id, alpha=0.3, patch_size=256, low_res=True, compression=8):
+        section=self.section_metadata.loc[(self.section_metadata['depth']==depth) & (self.section_metadata['block_id']==block_id)]
+        label_id,slide_id=section.loc[:,['label_id','slide_id']].values.flatten()
+        _,mask,label=self.load_slide(slide_id,compression)
+        xmin,ymin,xmax,ymax=self.get_section_bbox(slide_id,label_id)
+        tumor_map=self.load_macro_map(slide_id, alpha=alpha, patch_size=patch_size, low_res=low_res)
 
         img=tumor_map[xmin:xmax,ymin:ymax].copy()
         img[label[xmin:xmax,ymin:ymax]!=label_id]=255
@@ -233,7 +262,7 @@ class Case:
             f_out.write(f_in.read().replace("REPLACE",replace_txt).replace("BASENAME",self.patient))
 
     def extract2dzi(self, image_type='image', scheduler='single-threaded'):
-        assert image_type in ['image','nuclei','tumor','ink']
+        assert image_type in ['image','nuclei','tumor','ink','macro']
         os.makedirs("dzi_files",exist_ok=True)
         dzi_files=[]
         imgs={}
