@@ -153,7 +153,7 @@ class Case:
             y_pred=softmax(np.vstack([graph['y_pred'] for graph in graphs]),1)[:,1].reshape(-1,1)
             img_=self.load_slide(slide)[0].copy()
             one_square=np.ones((patch_size,patch_size)).astype(np.float)*255
-            for x,y,pred in tqdm.tqdm(np.hstack([xy,y_pred]).tolist(), desc='tumor'):
+            for x,y,pred in tqdm.tqdm(np.hstack([xy,y_pred]).tolist(), desc='macro'):
                 x,y=map(int,[x,y])
                 img_[x:x+patch_size,y:y+patch_size]=alpha*cv2.applyColorMap(np.uint8(pred*one_square), cv2.COLORMAP_JET)+(1-alpha)*img_[x:x+patch_size,y:y+patch_size]
             self.slide_cache.loc[slide_loc,'macro_gnn_results']=[img_]
