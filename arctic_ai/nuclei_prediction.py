@@ -20,7 +20,8 @@ class WSI_Dataset(Dataset):
         return self.length
 
 def predict_nuclei(basename="163_A1a",
-                   gpu_id=0):
+                   gpu_id=0,
+                   return_prob=False):
     os.makedirs("nuclei_results",exist_ok=True)
 
     analysis_type="tumor"
@@ -49,6 +50,7 @@ def predict_nuclei(basename="163_A1a",
     pred_mask=np.zeros(img_shape)
     for i in trange(Y_seg.shape[0]):
         x,y=xy[i]
-        pred_mask[x:x+patch_size,y:y+patch_size]=Y_seg[i].argmax(0)
-    pred_mask=pred_mask.astype(bool)
+        y_prob=Y_seg[i]
+        pred_mask[x:x+patch_size,y:y+patch_size]=y_prob.argmax(0) if not return_prob else y_prob
+    if not return_prob: pred_mask=pred_mask.astype(bool)
     np.save(f"nuclei_results/{basename}.npy",pred_mask)
