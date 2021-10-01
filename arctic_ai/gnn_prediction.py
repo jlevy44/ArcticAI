@@ -47,7 +47,7 @@ def fix_state_dict(state_dict):
     new_state_dict={}
     for k in state_dict:
         if '.att_' in k or '.lin_' in k:
-            new_state_dict[k.replace("_l.weight","_src.weight").replace("_r.weight","_dst.weight")]=state_dict[k]
+            new_state_dict[k.replace("_l","_src").replace("_r","_dst")]=state_dict[k]
         else:
             new_state_dict[k]=state_dict[k]
     return new_state_dict
