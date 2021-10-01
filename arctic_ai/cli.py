@@ -59,9 +59,10 @@ class Commands(object):
                    compression=1.,
                    overwrite=True,
                    record_time=False,
-                   extract_dzi=False):
+                   extract_dzi=False,
+                   ext=".npy"):
         from arctic_ai.workflow import run_series
-        run_series(patient,input_dir,scheme,compression,overwrite,record_time,extract_dzi)
+        run_series(patient,input_dir,scheme,compression,overwrite,record_time,extract_dzi,ext)
 
     def tif2npy(self,
                 in_file='',
