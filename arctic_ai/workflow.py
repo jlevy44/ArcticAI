@@ -25,7 +25,7 @@ def generate_output_file_names(basename):
     out_files['nuclei']=[f"nuclei_results/{basename}.npy"]
     return out_files
 
-def run_workflow_series(basename, compression, overwrite):
+def run_workflow_series(basename, compression, overwrite, ext):
     print(f"{basename} preprocessing")
 
     out_files=generate_output_file_names(basename)
@@ -33,10 +33,13 @@ def run_workflow_series(basename, compression, overwrite):
     times=dict()
     times['start']=time.time()
 
+    img_shape=None
     if not files_exist_overwrite(overwrite,out_files['preprocess']):
-        preprocess(basename=basename,
+        img_shape=preprocess(basename=basename,
                threshold=0.05,
-               patch_size=256)
+               patch_size=256,
+               ext=ext)
+
     times['preprocess']=time.time()
 
     for k in ['tumor','macro']:
@@ -70,13 +73,16 @@ def run_workflow_series(basename, compression, overwrite):
     print(f"{basename} ink detection")
     if not files_exist_overwrite(overwrite,out_files['ink']):
         detect_inks(basename=basename,
-                compression=8)
+                compression=8,
+                ext=ext)
     times["ink"]=time.time()
 
     print(f"{basename} nuclei detection")
     if not files_exist_overwrite(overwrite,out_files['nuclei']):
         predict_nuclei(basename=basename,
-                   gpu_id=-1)
+                   gpu_id=-1,
+                   ext=ext,
+                   img_shape=img_shape)
     times["nuclei"]=time.time()
     return times
 
@@ -87,14 +93,16 @@ def run_series(patient="163_A1",
                compression=1.,
                overwrite=True,
                record_time=False,
-               extract_dzi=False
+               extract_dzi=False,
+               ext=".npy"
                ):
     times=dict()
-    for f in glob.glob(os.path.join(input_dir,f"{patient}*.npy")):
-        basename=os.path.basename(f).replace(".npy","")#.replace(".tiff","").replace(".tif","").replace(".svs","")
+    for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
+        basename=os.path.basename(f).replace(ext,"")#.replace(".tiff","").replace(".tif","").replace(".svs","")
         times[basename]=run_workflow_series(basename,
                             compression,
-                            overwrite)
+                            overwrite,
+                            ext)
     if record_time:
         os.makedirs("times",exist_ok=True)
         pickle.dump(times,open(os.path.join("times",f"{patient}.pkl"),'wb'))

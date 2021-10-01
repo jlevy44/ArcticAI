@@ -3,17 +3,20 @@ import numpy as np, pandas as pd
 from pathflowai.utils import generate_tissue_mask
 from itertools import product
 from scipy.ndimage.morphology import binary_fill_holes as fill_holes
+from pathpretrain.utils import load_image
 
 def preprocess(basename="163_A1a",
                threshold=0.05,
-               patch_size=256):
+               patch_size=256,
+               ext='.npy'):
 
     os.makedirs("masks",exist_ok=True)
     os.makedirs("patches",exist_ok=True)
 
-    image=f"inputs/{basename}.npy"
-    basename=os.path.basename(image).replace('.npy','')
-    image=np.load(image)
+    image=f"inputs/{basename}{ext}"
+    basename=os.path.basename(image).replace(ext,'')
+    image=load_image(image)#np.load(image)
+    img_shape=image.shape[:-1]
 
     masks=dict()
     masks['tumor_map']=generate_tissue_mask(image,
@@ -40,3 +43,4 @@ def preprocess(basename="163_A1a",
         np.save(f"masks/{basename}_{k}.npy",masks[k])
         np.save(f"patches/{basename}_{k}.npy",patches[include_patches])
         patch_info[k].iloc[include_patches].to_pickle(f"patches/{basename}_{k}.pkl")
+    return img_shape

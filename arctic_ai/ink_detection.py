@@ -5,6 +5,7 @@ from skimage.morphology import disk
 import numpy as np, pandas as pd, copy
 import sys,os,cv2
 from itertools import product
+from pathpretrain.utils import load_image
 # sys.path.insert(0,os.path.abspath('.'))
 from .filters import filter_red_pen, filter_blue_pen, filter_green_pen
 
@@ -41,11 +42,12 @@ def get_edges(mask):
     return edges
 
 def detect_inks(basename="163_A1a",
-                compression=8):
+                compression=8,
+                ext=".npy"):
 
     os.makedirs("detected_inks",exist_ok=True)
 
-    img,mask=np.load(f"inputs/{basename}.npy"),np.load(f"masks/{basename}_macro_map.npy")
+    img,mask=load_image(f"inputs/{basename}{ext}"),np.load(f"masks/{basename}_macro_map.npy")
     img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
     labels,n_objects=scilabel(mask)

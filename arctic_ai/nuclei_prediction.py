@@ -22,7 +22,9 @@ class WSI_Dataset(Dataset):
 
 def predict_nuclei(basename="163_A1a",
                    gpu_id=0,
-                   return_prob=False):
+                   return_prob=False,
+                   ext=".npy",
+                   img_shape=None):
     os.makedirs("nuclei_results",exist_ok=True)
 
     analysis_type="tumor"
@@ -47,7 +49,12 @@ def predict_nuclei(basename="163_A1a",
                     save_predictions=False)['pred']
 
     xy=pd.read_pickle(patch_info_file)[['x','y']].values
-    img_shape=np.load(f"inputs/{basename}.npy",mmap_mode="r").shape[:-1]
+    if ext==".npy":
+        img_shape=np.load(f"inputs/{basename}.npy",mmap_mode="r").shape[:-1]
+    elif isinstance(img_shape,type(None)):
+        img_shape=load_image(f"inputs/{basename}{ext}").shape[:-1]
+    else:
+        assert not isinstance(img_shape,type(None))
     pred_mask=np.zeros(img_shape)
     for i in trange(Y_seg.shape[0]):
         x,y=xy[i]
