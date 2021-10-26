@@ -7,9 +7,10 @@ class Commands(object):
     def preprocess(self,
                    basename="163_A1a",
                    threshold=0.05,
-                   patch_size=256):
+                   patch_size=256,
+                   ext=".npy"):
         from arctic_ai.preprocessing import preprocess
-        preprocess(basename,threshold,patch_size)
+        preprocess(basename,threshold,patch_size,ext)
 
     def cnn_predict(self,
                     basename="163_A1a",
