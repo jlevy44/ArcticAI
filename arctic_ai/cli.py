@@ -19,6 +19,14 @@ class Commands(object):
         from arctic_ai.cnn_prediction import generate_embeddings
         generate_embeddings(basename,analysis_type,gpu_id)
 
+    def create_graph_data(self,
+                      basename="163_A1a",
+                      analysis_type="tumor",
+                      radius=256,
+                      min_component_size=600):
+        from arctic_ai.generate_graph import create_graph_data
+        create_graph_data(basename,analysis_type,radius,min_component_size)
+
     def gnn_predict(self,
                       basename="163_A1a",
                       analysis_type="tumor",
