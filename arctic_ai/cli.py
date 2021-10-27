@@ -32,10 +32,12 @@ class Commands(object):
                       analysis_type="tumor",
                       radius=256,
                       min_component_size=600,
-                      gpu_id=-1):
-        from arctic_ai.generate_graph import create_graph_data
+                      gpu_id=-1,
+                      generate_graph=True):
         from arctic_ai.gnn_prediction import predict
-        create_graph_data(basename,analysis_type,radius,min_component_size)
+        if generate_graph:
+            from arctic_ai.generate_graph import create_graph_data
+            create_graph_data(basename,analysis_type,radius,min_component_size)
         predict(basename,analysis_type,gpu_id)
 
     def nuclei_predict(self,
