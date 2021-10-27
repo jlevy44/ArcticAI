@@ -62,12 +62,18 @@ def plot_results(basename="163_A1c",
     out_graphs,res_,preds=[mapper_graphs[k][i]['out_res'][0] for i in range(len(mapper_graphs[k]))],[mapper_graphs[k][i]['out_res'][1] for i in range(len(mapper_graphs[k]))],[mapper_graphs[k][i]['graph'] for i in range(len(mapper_graphs[k]))]
     display_results(out_graphs,res_,alpha=0.2,s=20,img=im,preds=preds,scale=compression,node_scale=30)
 
+def try_except(fn,*args,**kwargs):
+    try:
+        fn(*args,**kwargs)
+    except:
+        pass
+
 def return_osd_template():
     import os, subprocess
-    os.makedirs("dzi_files",exist_ok=True)
+    try_except(os.makedirs,"dzi_files",exist_ok=True)
     for f in ['osd_scripts','dzi_files/openseadragon','dzi_files/style.css','./osd_template.html']:
-        os.system(f"rm -rf ${f}")
-    os.system("git clone https://github.com/jlevy44/osd_scripts")
-    os.link("osd_scripts/osd_template.html","./osd_template.html")
-    os.link("osd_scripts/style.css","dzi_files/style.css")
-    os.system("cp -al osd_scripts/openseadragon dzi_files/")
+        try_except(os.system,f"rm -rf ${f}")
+    try_except(os.system,"git clone https://github.com/jlevy44/osd_scripts")
+    try_except(os.link,"osd_scripts/osd_template.html","./osd_template.html")
+    try_except(os.link,"osd_scripts/style.css","dzi_files/style.css")
+    try_except(os.system,"cp -al osd_scripts/openseadragon dzi_files/")
