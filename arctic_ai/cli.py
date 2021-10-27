@@ -81,6 +81,10 @@ class Commands(object):
         from arctic_ai.utils import tif2npy
         tif2npy(in_file,out_dir)
 
+    def dzi_folder_setup(self):
+        from arctic_ai.utils import return_osd_template
+        return_osd_template()
+
     def extract_dzis(self,
                      patient='163_A1',
                      overwrite_scheme='',
