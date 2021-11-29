@@ -8,9 +8,10 @@ class Commands(object):
                    basename="163_A1a",
                    threshold=0.05,
                    patch_size=256,
-                   ext=".npy"):
+                   ext=".npy",
+                   secondary_patch_size=0):
         from arctic_ai.preprocessing import preprocess
-        preprocess(basename,threshold,patch_size,ext)
+        preprocess(basename,threshold,patch_size,ext,secondary_patch_size)
 
     def cnn_predict(self,
                     basename="163_A1a",

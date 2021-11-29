@@ -8,7 +8,8 @@ from pathpretrain.utils import load_image
 def preprocess(basename="163_A1a",
                threshold=0.05,
                patch_size=256,
-               ext='.npy'):
+               ext='.npy',
+               secondary_patch_size=0):
 
     os.makedirs("masks",exist_ok=True)
     os.makedirs("patches",exist_ok=True)
@@ -43,4 +44,14 @@ def preprocess(basename="163_A1a",
         np.save(f"masks/{basename}_{k}.npy",masks[k])
         np.save(f"patches/{basename}_{k}.npy",patches[include_patches])
         patch_info[k].iloc[include_patches].to_pickle(f"patches/{basename}_{k}.pkl")
+
+    if secondary_patch_size:
+        patch_info=dict()
+        for k in ['tumor_map']:
+            patch_info[k]=pd.DataFrame([[basename,x,y,secondary_patch_size,"0"] for x,y in tqdm.tqdm(list(product(range(0,x_max-secondary_patch_size,secondary_patch_size),range(0,y_max-secondary_patch_size,secondary_patch_size))))],columns=['ID','x','y','patch_size','annotation'])
+            patches=np.stack([image[x:x+secondary_patch_size,y:y+secondary_patch_size] for x,y in tqdm.tqdm(patch_info[k][['x','y']].values.tolist())])
+            include_patches=np.stack([masks[k][x:x+secondary_patch_size,y:y+secondary_patch_size] for x,y in tqdm.tqdm(patch_info[k][['x','y']].values.tolist())]).mean((1,2))>=threshold
+
+            np.save(f"patches/{basename}_{k}_{secondary_patch_size}.npy",patches[include_patches])
+            patch_info[k].iloc[include_patches].to_pickle(f"patches/{basename}_{k}_{secondary_patch_size}.pkl")
     return img_shape
