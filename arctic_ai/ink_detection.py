@@ -67,20 +67,12 @@ def detect_inks(basename="163_A1a",
         im=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
         edges=dask.delayed(get_edges)(msk)#)
         com=np.vstack(np.where(msk)).T.mean(0)*compression
-        pen_masks[ID]={k:dask.delayed(lambda x,y,z,k: np.vstack(np.where(z & filter_tune(x,k,y))).T*compression)(im,edges,msk,color) for color in ink_fn}
+        pen_masks[ID]={color:dask.delayed(lambda x,y,z,k: np.vstack(np.where(z & filter_tune(x,k,y))).T*compression)(im,edges,msk,color) for color in ink_fn}
         pen_masks[ID]['center_mass']=com
     with ProgressBar():
         pen_masks=dask.compute(pen_masks,scheduler="threading")[0]
     pd.to_pickle(pen_masks,f"{dirname}/detected_inks/{basename}.pkl")
     return None
-    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
-    for color,obj in product(coords_df.index[:-1],coords_df.columns):
-        coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression-coord_translate[obj]
-        if return_mean: coords_df.loc[color,obj]=coords_df.loc[color,obj].mean(0)
-    for obj in coords_df.columns:
-        coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression-coord_translate[obj]
-
-    coords_df.to_pickle(f"{dirname}/detected_inks/{basename}.pkl")
 
 
 def detect_inks_old_v3(basename="163_A1a",
