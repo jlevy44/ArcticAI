@@ -96,6 +96,8 @@ def preprocess(basename="163_A1a",
             xy['macro_tumor']=xy['macro'].intersection(tmp_points.buffer(64))
             xy['macro_no_tumor']=xy['macro'].difference(tmp_points.buffer(64))
             xy['tumor_no_macro']=tmp_points.difference(xy['macro'].buffer(64))
+            for k in xy:
+                print(xy[k])
             xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
             del xy['macro']
             for k in xy:
