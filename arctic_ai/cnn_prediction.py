@@ -73,12 +73,13 @@ class CustomDatasetOld(Dataset):
 
 def generate_embeddings(basename="163_A1a",
                         analysis_type="tumor",
-                       gpu_id=0):
+                       gpu_id=0,
+                       dirname="."):
 
-    os.makedirs("cnn_embeddings",exist_ok=True)
+    os.makedirs(os.path.join(dirname,"cnn_embeddings"),exist_ok=True)
 
-    patch_info_file,npy_file=f"patches/{basename}.pkl",f"patches/{basename}.npy"
-    models={k:f"models/{k}_map_cnn.pth" for k in ['macro','tumor']}
+    patch_info_file,npy_file=os.path.join(dirname,f"patches/{basename}.pkl"),os.path.join(dirname,f"patches/{basename}.npy")
+    models={k:os.path.join(dirname,f"models/{k}_map_cnn.pth") for k in ['macro','tumor']}
     num_classes=dict(macro=4,tumor=3)
 
     npy_stack=np.load(npy_file)
@@ -86,12 +87,13 @@ def generate_embeddings(basename="163_A1a",
     if f"{analysis_type}_map" in patch_info.columns:
         npy_stack=npy_stack[patch_info[f"{analysis_type}_map"].values]
         patch_info=patch_info[patch_info[f"{analysis_type}_map"].values]
-    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir="cnn_embeddings/",custom_dataset=CustomDataset(patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
+    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
 
 
 def generate_embeddings_old(basename="163_A1a",
                         analysis_type="tumor",
-                       gpu_id=0):
+                       gpu_id=0,
+                       dirname="."):
 
     warnings.warn(
             "Old generate embeddings function is deprecated",
@@ -99,9 +101,9 @@ def generate_embeddings_old(basename="163_A1a",
         )
     raise RuntimeError
 
-    os.makedirs("cnn_embeddings",exist_ok=True)
+    os.makedirs(os.path.join(dirname,"cnn_embeddings"),exist_ok=True)
 
-    patch_info_file,npy_file=f"patches/{basename}_{analysis_type}_map.pkl",f"patches/{basename}_{analysis_type}_map.npy"
+    patch_info_file,npy_file=os.path.join(dirname,f"patches/{basename}_{analysis_type}_map.pkl"),os.path.join(dirname,f"patches/{basename}_{analysis_type}_map.npy")
     models={k:f"models/{k}_map_cnn.pth" for k in ['macro','tumor']}
     num_classes=dict(macro=4,tumor=3)
-    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir="cnn_embeddings/",custom_dataset=CustomDataset(patch_info_file,npy_file,generate_transformers(224,256)['test']),gpu_id=gpu_id)
+    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(patch_info_file,npy_file,generate_transformers(224,256)['test']),gpu_id=gpu_id)

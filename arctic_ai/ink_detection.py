@@ -51,7 +51,7 @@ def detect_inks(basename="163_A1a",
                 dirname=".",
                 return_mean=False):
 
-    os.makedirs("detected_inks",exist_ok=True)
+    os.makedirs(os.path.join(dirname,"detected_inks"),exist_ok=True)
 
     img=load_image(f"{dirname}/inputs/{basename}{ext}")
     xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
