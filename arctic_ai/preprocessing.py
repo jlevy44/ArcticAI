@@ -5,7 +5,7 @@ from scipy.ndimage.morphology import binary_fill_holes as fill_holes
 from pathpretrain.utils import load_image, generate_tissue_mask
 from scipy.sparse.csgraph import connected_components
 from sklearn.neighbors import radius_neighbors_graph
-from shapely.geometry import MultiPoint
+from shapely.geometry import Point,MultiPoint
 import dask
 from dask.diagnostics import ProgressBar
 import alphashape
@@ -97,7 +97,7 @@ def preprocess(basename="163_A1a",
             xy['macro_no_tumor']=xy['macro'].difference(tmp_points.buffer(64))
             xy['tumor_no_macro']=tmp_points.difference(xy['macro'].buffer(64))
             for k in xy:
-                if len(xy[k].geoms)==0:
+                if isinstance(xy[k],Point) or len(xy[k].geoms)==0:
                     del xy[k]
             del xy['macro']
             xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
