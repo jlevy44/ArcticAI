@@ -126,7 +126,7 @@ def preprocess(basename="163_A1a",
             patches_ID=np.stack([im[x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info_ID[['x','y']].values.tolist())])
             patch_info_ID.reset_index(drop=True).to_pickle(os.path.join(dirname,"patches",f"{basename}_{ID}.pkl"))
             write_files.append(dask.delayed(np.save)(os.path.join(dirname,"patches",f"{basename}_{ID}.npy"),patches_ID))
-            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"masks",f"{basename}_{ID}.npy"),cv2.resize(msk,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_NEAREST) if image_mask_compression>1 else msk))
+            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"masks",f"{basename}_{ID}.npy"),cv2.resize(msk.astype(np.uint8),None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_NEAREST)>0 if image_mask_compression>1 else msk))
             if write_images:
                 write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),im))
             elif image_mask_compression>1:
