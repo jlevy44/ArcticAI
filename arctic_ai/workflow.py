@@ -106,14 +106,13 @@ def run_series(patient="163_A1",
                ext=".npy",
                dirname="."
                ):
-    times=dict()
     for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
         basename=os.path.basename(f).replace(ext,"")#.replace(".tiff","").replace(".tif","").replace(".svs","")
-        times[basename]=run_workflow_series(basename,
+        times=run_workflow_series(basename,
                             compression,
                             overwrite,
                             ext,
                             dirname)
-    if record_time:
-        os.makedirs(os.path.join(dirname,"times"),exist_ok=True)
-        pickle.dump(times,open(os.path.join(dirname,"times",f"{patient}.pkl"),'wb'))
+        if record_time:
+            os.makedirs(os.path.join(dirname,"times"),exist_ok=True)
+            pickle.dump(times,open(os.path.join(dirname,"times",f"{basename}.pkl"),'wb'))
