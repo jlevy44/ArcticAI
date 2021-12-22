@@ -48,7 +48,8 @@ def detect_inks(basename="163_A1a",
                 compression=8,
                 mask_compressed=True,
                 ext=".npy",
-                dirname="."):
+                dirname=".",
+                return_mean=False):
 
     os.makedirs("detected_inks",exist_ok=True)
 
@@ -81,6 +82,7 @@ def detect_inks(basename="163_A1a",
     coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
     for color,obj in product(coords_df.index[:-1],coords_df.columns):
         coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression-coord_translate[obj]
+        if return_mean: coords_df.loc[color,obj]=coords_df.loc[color,obj].mean(0)
     for obj in coords_df.columns:
         coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression-coord_translate[obj]
 
