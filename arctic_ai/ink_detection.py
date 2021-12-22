@@ -68,9 +68,9 @@ def detect_inks(basename="163_A1a",
         coord_translate[ID]=np.array([xmin,ymin])
         im=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
         print(im.shape,msk.shape)
-        edges=get_edges(msk)
+        edges=dask.delayed(get_edges)(msk)#)
         com[ID]=np.vstack(np.where(msk)).T.mean(0)*compression
-        pen_masks[ID]={k:dask.delayed(lambda x: filter_tune(x,k,edges))(im) for k in ink_fn}
+        pen_masks[ID]={k:dask.delayed(lambda x,y: filter_tune(x,k,y))(im,edges) for k in ink_fn}
     with ProgressBar():
         pen_masks=dask.compute(pen_masks,scheduler="threading")[0]
         pen_masks={k:v[0] for k,v in pen_masks.items()}
