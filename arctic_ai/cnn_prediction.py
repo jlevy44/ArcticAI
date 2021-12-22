@@ -6,7 +6,7 @@ import warnings
 
 class CustomDataset(Dataset):
     # load using saved patches and mask file
-    def __init__(self, patch_info, X, transform):
+    def __init__(self, ID, patch_info, X, transform):
         self.X=X
         self.patch_info=patch_info
         self.xy=self.patch_info[['x','y']].values
@@ -14,7 +14,7 @@ class CustomDataset(Dataset):
         self.length=self.patch_info.shape[0]
         self.transform=transform
         self.to_pil=lambda x: Image.fromarray(x)
-        self.ID=os.path.basename(npy_file).replace(".npy","")
+        self.ID=ID#os.path.basename(npy_file).replace(".npy","")
 
     def __getitem__(self,i):
         x,y=self.xy[i]
@@ -87,7 +87,7 @@ def generate_embeddings(basename="163_A1a",
     if f"{analysis_type}_map" in patch_info.columns:
         npy_stack=npy_stack[patch_info[f"{analysis_type}_map"].values]
         patch_info=patch_info[patch_info[f"{analysis_type}_map"].values]
-    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
+    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(basename,patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
 
 
 def generate_embeddings_old(basename="163_A1a",
