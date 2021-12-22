@@ -7,6 +7,8 @@ import sys,os,cv2
 from itertools import product
 from pathpretrain.utils import load_image
 import warnings
+import dask
+from dask.diagnostics import ProgressBar
 # sys.path.insert(0,os.path.abspath('.'))
 from .filters import filter_red_pen, filter_blue_pen, filter_green_pen
 
@@ -75,9 +77,11 @@ def detect_inks(basename="163_A1a",
     xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
     img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mask=np.zeros(img.shape[:-1],dtype=np.uint8)
+    with ProgressBar():
+        masks=dask.compute({ID:dask.delayed(np.load)(f"{dirname}/masks/{basename}_{ID}.npy") for ID in xy_bounds},scheduler="threading")[0]
     for ID in xy_bounds:
-        (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
-        msk=np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
+        (xmin,ymin),(xmax,ymax)=xy_bounds[ID].astype(np.uint8)
+        msk=masks[ID].astype(np.uint8)#np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
         if mask_compressed:
             xmin,ymin,xmax,ymax=(np.array([xmin,ymin,xmax,ymax])/compression).astype(int)
             xmax,ymax=np.array([xmin,xmax]+np.array(msk.shape))
