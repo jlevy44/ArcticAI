@@ -44,27 +44,6 @@ def get_edges(mask):
     edges = binary_dilation(edges,disk(30,bool))
     return edges
 
-def detect_inks_old_v2(basename="163_A1a_1",compression=8.,*args,**kwargs):
-
-    os.makedirs("detected_inks",exist_ok=True)
-
-    img=load_image(f"inputs/{basename}.npy")
-    mask=np.load(f"masks/{basename}.npy")
-    ID=int(basename.split("_")[-1])
-    labels,mask=mask,labels>0
-    edges=get_edges(mask)
-    pen_masks={k:filter_tune(img,k,edges) for k in ink_fn}
-
-    # for k in ['green','blue','red','yellow']:
-    #     img[pen_masks[k],:]=colors[k]
-
-    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=[ID])#
-    coords_df.loc[color,ID]=np.vstack(np.where(mask & (pen_masks[color]))).T*compression
-    coords_df.loc["center_mass",ID]=np.vstack(np.where(mask)).T.mean(0)*compression
-
-    coords_df.to_pickle(f"detected_inks/{basename}.pkl")
-
-
 def detect_inks(basename="163_A1a",
                 compression=8,
                 mask_compressed=True,
@@ -104,6 +83,26 @@ def detect_inks(basename="163_A1a",
         coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression
 
     coords_df.to_pickle(f"{dirname}/detected_inks/{basename}.pkl")
+
+def detect_inks_old_v2(basename="163_A1a_1",compression=8.,*args,**kwargs):
+
+    os.makedirs("detected_inks",exist_ok=True)
+
+    img=load_image(f"inputs/{basename}.npy")
+    mask=np.load(f"masks/{basename}.npy")
+    ID=int(basename.split("_")[-1])
+    labels,mask=mask,labels>0
+    edges=get_edges(mask)
+    pen_masks={k:filter_tune(img,k,edges) for k in ink_fn}
+
+    # for k in ['green','blue','red','yellow']:
+    #     img[pen_masks[k],:]=colors[k]
+
+    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=[ID])#
+    coords_df.loc[color,ID]=np.vstack(np.where(mask & (pen_masks[color]))).T*compression
+    coords_df.loc["center_mass",ID]=np.vstack(np.where(mask)).T.mean(0)*compression
+
+    coords_df.to_pickle(f"detected_inks/{basename}.pkl")
 
 def detect_inks_old(basename="163_A1a",
                 compression=8,
