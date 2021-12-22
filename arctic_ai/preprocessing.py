@@ -30,6 +30,7 @@ def preprocess(basename="163_A1a",
     os.makedirs(os.path.join(dirname,"masks"),exist_ok=True)
     os.makedirs(os.path.join(dirname,"patches"),exist_ok=True)
     os.makedirs(os.path.join(dirname,"images"),exist_ok=True)
+    os.makedirs(os.path.join(dirname,"metadata"),exist_ok=True)
 
     image=os.path.join(dirname,"inputs",f"{basename}{ext}")
     basename=os.path.basename(image).replace(ext,'')
@@ -117,7 +118,10 @@ def preprocess(basename="163_A1a",
         for coord in ['x','y']: patch_info[f'{coord}_orig']=patch_info[coord]
         xy_bounds={}
         write_files=[]
+        new_basenames=[]
         for ID in patch_info['section_ID'].unique():
+            new_basename=f"{basename}_{ID}"
+            new_basenames.append(new_basename)
             include_patches=(patch_info['section_ID']==ID).values
             patch_info_ID=patch_info[include_patches]
             (xmin,ymin),(xmax,ymax)=patch_info_ID[['x','y']].min(0).values,(patch_info_ID[['x','y']].max(0).values+patch_size)
@@ -125,18 +129,19 @@ def preprocess(basename="163_A1a",
             msk=masks['tumor_map'][xmin:xmax,ymin:ymax]
             patch_info_ID.loc[:,['x','y']]-=patch_info_ID[['x','y']].min(0)
             patches_ID=np.stack([im[x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info_ID[['x','y']].values.tolist())])
-            patch_info_ID.reset_index(drop=True).to_pickle(os.path.join(dirname,"patches",f"{basename}_{ID}.pkl"))
-            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"patches",f"{basename}_{ID}.npy"),patches_ID))
-            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"masks",f"{basename}_{ID}.npy"),cv2.resize(msk.astype(np.uint8),None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_NEAREST)>0 if image_mask_compression>1 else msk))
+            patch_info_ID.reset_index(drop=True).to_pickle(os.path.join(dirname,"patches",f"{new_basename}.pkl"))
+            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"patches",f"{new_basename}.npy"),patches_ID))
+            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"masks",f"{new_basename}.npy"),cv2.resize(msk.astype(np.uint8),None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_NEAREST)>0 if image_mask_compression>1 else msk))
             if write_images:
                 if image_mask_compression>1:
-                    write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),cv2.resize(im,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_CUBIC)))
+                    write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{new_basename}.npy"),cv2.resize(im,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_CUBIC)))
                 else:
-                    write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),im))
+                    write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{new_basename}.npy"),im))
             xy_bounds[ID]=((xmin,ymin),(xmax,ymax))
         pd.to_pickle(xy_bounds,os.path.join(dirname,"masks",f"{basename}.pkl"))
         with ProgressBar():
             dask.compute(write_files,scheduler='threading')
+        pd.to_pickle(new_basenames,os.path.join(dirname,"metadata",f"{basename}.pkl"))
     return None
 
 def preprocess_old(basename="163_A1a",
