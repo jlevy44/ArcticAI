@@ -68,12 +68,12 @@ def detect_inks(basename="163_A1a",
         if not mask_compressed: msk=cv2.resize(msk.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
         coord_translate[ID+1]=np.array([xmin,ymin])
         imgs[ID]=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
-        edges[ID]=dask.delayed(get_edges)(msk)
-        pen_masks[ID]={k:dask.delayed(lambda x: filter_tune(x,k,edges))(imgs[ID]) for k in ink_fn}
-        com[ID]=dask.delayed(lambda x: np.vstack(np.where(x)).T.mean(0)*compression)(msk)
+        edges[ID]=get_edges(msk)
+        pen_masks[ID]={k:dask.delayed(lambda x: filter_tune(x,k,edges[ID]))(imgs[ID]) for k in ink_fn}
+        com[ID]=np.vstack(np.where(msk)).T.mean(0)*compression
     with ProgressBar():
-        edges,pen_masks,com=dask.compute(*(edges,pen_masks,com),scheduler="threading")
-        edges,pen_masks,com=edges[0],{k:v[0] for k,v in pen_masks[0].items()},com[0]
+        pen_masks=dask.compute(*(edges,pen_masks,com),scheduler="threading")
+        pen_masks={k:v[0] for k,v in pen_masks[0].items()}
     with ProgressBar():
         pen_masks=dask.compute({{dask.delayed(np.vstack(np.where((labels==obj) & (x))).T*compression)(pen_masks[k][color]) for color in pen_masks[k]}  for ID in xy_bounds},scheduler="threading")[0]
     pd.to_pickle(pen_masks,f"{dirname}/detected_inks/{basename}.pkl")
