@@ -42,7 +42,7 @@ def get_edges(mask):
     edges = binary_dilation(edges,disk(30,bool))
     return edges
 
-def detect_inks(basename="163_A1a_1",compression=8.,*args,**kwargs):
+def detect_inks_old_v2(basename="163_A1a_1",compression=8.,*args,**kwargs):
 
     os.makedirs("detected_inks",exist_ok=True)
 
@@ -63,22 +63,27 @@ def detect_inks(basename="163_A1a_1",compression=8.,*args,**kwargs):
     coords_df.to_pickle(f"detected_inks/{basename}.pkl")
 
 
-def detect_inks_old_v2(basename="163_A1a",
+def detect_inks(basename="163_A1a",
                 compression=8,
-                ext=".npy"):
+                mask_compressed=True,
+                ext=".npy",
+                dirname="."):
 
     os.makedirs("detected_inks",exist_ok=True)
 
-    img=load_image(f"inputs/{basename}{ext}")
-    xy_bounds=pd.read_pickle(os.path.join("masks",f"{basename}.pkl"))
+    img=load_image(f"{dirname}/inputs/{basename}{ext}")
+    xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
     img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mask=np.zeros(img.shape[:-1],dtype=np.uint8)
     for ID in xy_bounds:
         (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
-        msk=np.load(f"masks/{basename}_{ID}.npy").astype(np.uint8)
+        msk=np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
+        if mask_compressed:
+            xmin,ymin,xmax,ymax=(np.array([xmin,ymin,xmax,ymax])/compression).astype(int)
+            xmax,ymax=np.array([xmin,xmax]+np.array(msk.shape))
         msk[msk>0]=ID+1
         mask[xmin:xmax,ymin:ymax]=msk
-    mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
+    if not mask_compressed: mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
     labels,mask=mask,labels>0
     n_objects=np.max(np.flatten(labels))
     # labels,n_objects=scilabel(mask)
@@ -94,7 +99,7 @@ def detect_inks_old_v2(basename="163_A1a",
     for obj in coords_df.columns:
         coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression
 
-    coords_df.to_pickle(f"detected_inks/{basename}.pkl")
+    coords_df.to_pickle(f"{dirname}/detected_inks/{basename}.pkl")
 
 def detect_inks_old(basename="163_A1a",
                 compression=8,
