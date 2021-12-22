@@ -130,7 +130,7 @@ def preprocess(basename="163_A1a",
             if write_images:
                 write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),im))
             elif image_mask_compression>1:
-                write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),cv2.resize(msk,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_CUBIC)))
+                write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),cv2.resize(im,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_CUBIC)))
             xy_bounds[ID]=((xmin,ymin),(xmax,ymax))
         pd.to_pickle(xy_bounds,os.path.join(dirname,"masks",f"{basename}.pkl"))
         with ProgressBar():
