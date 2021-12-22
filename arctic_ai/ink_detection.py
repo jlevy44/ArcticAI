@@ -45,7 +45,7 @@ def get_edges(mask):
     return edges
 
 def detect_inks(basename="163_A1a",
-                compression=8,
+                compression=8.,
                 mask_compressed=True,
                 ext=".npy",
                 dirname=".",
@@ -66,8 +66,9 @@ def detect_inks(basename="163_A1a",
         (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
         msk=masks[ID].astype(np.uint8)
         if not mask_compressed: msk=cv2.resize(msk.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
-        coord_translate[ID+1]=np.array([xmin,ymin])
+        coord_translate[ID]=np.array([xmin,ymin])
         imgs[ID]=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
+        print(imgs[ID].shape,msk.shape)
         edges[ID]=dask.delayed(get_edges)(msk)
         pen_masks[ID]={k:dask.delayed(lambda x: filter_tune(x,k,edges[ID]))(imgs[ID]) for k in ink_fn}
         com[ID]=np.vstack(np.where(msk)).T.mean(0)*compression
