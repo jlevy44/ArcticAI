@@ -11,6 +11,7 @@ from .dzi_writer import npy2dzi, stitch_slides
 from .case_prototype import Case
 import warnings
 from functools import partial
+import pandas as pd
 
 def files_exist_overwrite(overwrite, files):
     return (not overwrite) and all([os.path.exists(file) for file in files])
