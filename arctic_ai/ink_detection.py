@@ -58,8 +58,10 @@ def detect_inks(basename="163_A1a",
     mask=np.zeros(img.shape[:-1],dtype=np.uint8)
     with ProgressBar():
         masks=dask.compute({ID:dask.delayed(np.load)(f"{dirname}/masks/{basename}_{ID}.npy") for ID in xy_bounds},scheduler="threading")[0]
+    coord_translate={}
     for ID in xy_bounds:
         (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
+        coord_translate[ID+1]=np.array([xmin,ymin])
         msk=masks[ID].astype(np.uint8)#np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
         if mask_compressed:
             xmin,ymin,xmax,ymax=(np.array([xmin,ymin,xmax,ymax])/compression).astype(int)
@@ -78,9 +80,9 @@ def detect_inks(basename="163_A1a",
 
     coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
     for color,obj in product(coords_df.index[:-1],coords_df.columns):
-        coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression
+        coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression-coord_translate[obj]
     for obj in coords_df.columns:
-        coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression
+        coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression-coord_translate[obj]
 
     coords_df.to_pickle(f"{dirname}/detected_inks/{basename}.pkl")
 
