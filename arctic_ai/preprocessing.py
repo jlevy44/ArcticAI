@@ -96,7 +96,7 @@ def preprocess(basename="163_A1a",
             xy['macro_tumor']=xy['macro'].intersection(tmp_points.buffer(64))
             xy['macro_no_tumor']=xy['macro'].difference(tmp_points.buffer(64))
             xy['tumor_no_macro']=tmp_points.difference(xy['macro'].buffer(64))
-            for k in xy:
+            for k in list(xy.keys()):
                 if isinstance(xy[k],Point) or len(xy[k].geoms)==0:
                     del xy[k]
             del xy['macro']
