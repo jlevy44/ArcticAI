@@ -5,7 +5,8 @@ from scipy.ndimage.morphology import binary_fill_holes as fill_holes
 from pathpretrain.utils import load_image, generate_tissue_mask
 from scipy.sparse.csgraph import connected_components
 from sklearn.neighbors import radius_neighbors_graph
-from shapely.geometry import Point,MultiPoint
+from shapely.geometry import Point, MultiPoint
+import cv2
 import dask
 from dask.diagnostics import ProgressBar
 import alphashape
