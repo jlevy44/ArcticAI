@@ -54,16 +54,17 @@ def fix_state_dict(state_dict):
 
 def predict(basename="163_A1a",
             analysis_type="tumor",
-            gpu_id=0):
+            gpu_id=0,
+            dirname="."):
 
-    os.makedirs("gnn_results",exist_ok=True)
+    os.makedirs(os.path.join(dirname,"gnn_results"),exist_ok=True)
     hidden_topology=dict(tumor=[32,64,64],macro=[32,64,64])#[32]*3
     num_classes=dict(macro=4,tumor=3)
     if gpu_id>=0: torch.cuda.set_device(gpu_id)
-    dataset=pickle.load(open(os.path.join('graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'rb'))
+    dataset=pickle.load(open(os.path.join(dirname,'graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'rb'))
     model=GCNNet(dataset[0].x.shape[1],num_classes[analysis_type],hidden_topology=hidden_topology[analysis_type],p=0.,p2=0.)
     model=model.cuda()
-    model.load_state_dict(fix_state_dict(torch.load(os.path.join("models",f"{analysis_type}_map_gnn.pth"),map_location=f"cuda:{gpu_id}" if gpu_id>=0 else "cpu")))
+    model.load_state_dict(fix_state_dict(torch.load(os.path.join(dirname,"models",f"{analysis_type}_map_gnn.pth"),map_location=f"cuda:{gpu_id}" if gpu_id>=0 else "cpu")))
     dataloader=TG_DataLoader(dataset,shuffle=False,batch_size=1)
     model.eval()
     feature_extractor=GCNFeatures(model,bayes=False).cuda()
@@ -78,4 +79,4 @@ def predict(basename="163_A1a",
             preds=feature_extractor(x,edge_index)
             z,y_pred=preds[0].detach().cpu().numpy(),preds[1].detach().cpu().numpy()
             graphs.append(dict(G=graph,xy=xy,z=z,y_pred=y_pred,slide=data.id,component=data.component))
-    torch.save(graphs,os.path.join("gnn_results",f"{basename}_{analysis_type}_map.pkl"))
+    torch.save(graphs,os.path.join(dirname,"gnn_results",f"{basename}_{analysis_type}_map.pkl"))

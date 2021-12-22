@@ -10,11 +10,12 @@ def create_graph_data(basename="163_A1a",
                       analysis_type="tumor",
                       radius=256,
                       min_component_size=600,
-                      no_component_break=False):
+                      no_component_break=False,
+                      dirname="."):
 
-    os.makedirs("graph_datasets",exist_ok=True)
+    os.makedirs(os.path.join(dirname,"graph_datasets"),exist_ok=True)
 
-    embeddings=torch.load(f"cnn_embeddings/{basename}_{analysis_type}_map.pkl")
+    embeddings=torch.load(os.path.join(dirname,f"cnn_embeddings/{basename}_{analysis_type}_map.pkl"))
     xy=torch.tensor(embeddings['patch_info'][['x','y']].values).float().cuda()
     X=torch.tensor(embeddings['embeddings'])
     G=radius_graph(xy, r=radius*np.sqrt(2), batch=None, loop=True)
@@ -53,4 +54,4 @@ def create_graph_data(basename="163_A1a",
         dataset.component=i
         datasets.append(dataset)
 
-    pickle.dump(datasets,open(os.path.join('graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'wb'))
+    pickle.dump(datasets,open(os.path.join(dirname,'graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'wb'))
