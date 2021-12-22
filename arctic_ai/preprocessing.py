@@ -114,7 +114,7 @@ def preprocess(basename="163_A1a",
             patch_info_new.append(xy)
 
         patch_info=pd.concat(patch_info_new,axis=0)
-        for coord in [['x','y']]: patch_info[f'{coord}_orig']=patch_info[coord]
+        for coord in ['x','y']: patch_info[f'{coord}_orig']=patch_info[coord]
         xy_bounds={}
         write_files=[]
         for ID in patch_info['section_ID'].unique():
