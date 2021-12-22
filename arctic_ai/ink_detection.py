@@ -84,7 +84,7 @@ def detect_inks(basename="163_A1a",
         msk=masks[ID].astype(np.uint8)#np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
         if mask_compressed:
             xmin,ymin,xmax,ymax=(np.array([xmin,ymin,xmax,ymax])/compression).astype(int)
-            xmax,ymax=np.array([xmin,xmax]+np.array(msk.shape))
+            xmax,ymax=np.array([xmin,ymin]+np.array(msk.shape))
         msk[msk>0]=ID+1
         mask[xmin:xmax,ymin:ymax]=msk
     if not mask_compressed: mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
