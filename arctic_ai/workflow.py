@@ -27,7 +27,7 @@ def generate_output_file_names(basename):
     out_files['nuclei']=[f"nuclei_results/{basename}.npy"]
     return out_files
 
-def run_workflow_series(basename, compression, overwrite, ext):
+def run_workflow_series(basename, compression, overwrite, ext, dirname):
     print(f"{basename} preprocessing")
 
     out_files=generate_output_file_names(basename)
@@ -42,11 +42,12 @@ def run_workflow_series(basename, compression, overwrite, ext):
                ext=ext,
                no_break=False,
                df_section_pieces_file="df_section_pieces.pkl",
-               image_mask_compression=8.)
+               image_mask_compression=8.,
+               dirname=dirname)
 
     times['preprocess']=time.time()
 
-    new_basenames=pd.read_pickle(os.path.join("metadata",f"{basename}.pkl"))
+    new_basenames=pd.read_pickle(os.path.join(dirname,"metadata",f"{basename}.pkl"))
 
     for k in ['tumor','macro']: times[f'cnn_{k}'],times[f'graph_{k}'],times[f'gnn_{k}']=[],[],[]
     for bn in new_basenames:
@@ -55,7 +56,8 @@ def run_workflow_series(basename, compression, overwrite, ext):
             if not files_exist_overwrite(overwrite,out_files[f'cnn_{k}']):
                 generate_embeddings(basename=bn,
                                 analysis_type=k,
-                               gpu_id=-1)
+                               gpu_id=-1,
+                               dirname=dirname)
             times[f'cnn_{k}'].append(time.time())
 
             print(f"{bn} {k} build graph")
@@ -64,28 +66,32 @@ def run_workflow_series(basename, compression, overwrite, ext):
                               analysis_type=k,
                               radius=256,
                               min_component_size=600,
-                              no_component_break=False)
+                              no_component_break=False,
+                              dirname=dirname)
             times[f'graph_{k}'].append(time.time())
 
             print(f"{bn} {k} gnn predict")
             if not files_exist_overwrite(overwrite,out_files[f'gnn_{k}']):
                 predict(basename=bn,
                     analysis_type=k,
-                    gpu_id=-1)
+                    gpu_id=-1,
+                    dirname=dirname)
             times[f'gnn_{k}'].append(time.time())
 
     print(f"{basename} ink detection")
     if not files_exist_overwrite(overwrite,out_files['ink']):
         detect_inks(basename=basename,
                 compression=8.,
-                ext=ext)
+                ext=ext,
+                dirname=dirname)
     times["ink"]=time.time()
 
     print(f"{basename} stitch")
     if not files_exist_overwrite(overwrite,out_files['ink']):
         stitch_slides(basename=basename,
                 compression=4,
-                ext=ext)
+                ext=ext,
+                dirname=dirname)
     times["stitch"]=time.time()
 
     return times
@@ -96,7 +102,8 @@ def run_series(patient="163_A1",
                compression=1.,
                overwrite=True,
                record_time=True,
-               ext=".npy"
+               ext=".npy",
+               dirname="."
                ):
     times=dict()
     for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
@@ -104,8 +111,8 @@ def run_series(patient="163_A1",
         times[basename]=run_workflow_series(basename,
                             compression,
                             overwrite,
-                            ext)
+                            ext,
+                            dirname)
     if record_time:
-        os.makedirs("times",exist_ok=True)
-        pickle.dump(times,open(os.path.join("times",f"{patient}.pkl"),'wb'))
-    dump_results(patient,scheme)
+        os.makedirs(os.path.join(dirname,"times"),exist_ok=True)
+        pickle.dump(times,open(os.path.join(dirname,"times",f"{patient}.pkl"),'wb'))
