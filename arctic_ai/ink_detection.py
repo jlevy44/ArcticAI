@@ -67,12 +67,10 @@ def detect_inks(basename="163_A1a",
         im=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
         edges=dask.delayed(get_edges)(msk)#)
         com=np.vstack(np.where(msk)).T.mean(0)*compression
-        pen_masks[ID]={k:dask.delayed(lambda x,y: filter_tune(x,k,y))(im,edges) for k in ink_fn}
+        pen_masks[ID]={k:dask.delayed(lambda x,y,z: np.vstack(np.where(z & filter_tune(x,k,y))).T*compression)(im,edges,msk) for k in ink_fn}
         pen_masks[ID]['center_mass']=com
     with ProgressBar():
         pen_masks=dask.compute(pen_masks,scheduler="threading")[0]
-    with ProgressBar():
-        pen_masks=dask.compute({{dask.delayed(np.vstack(np.where((labels==obj) & (x))).T*compression)(pen_masks[k][color]) for color in pen_masks[k]}  for ID in xy_bounds},scheduler="threading")[0]
     pd.to_pickle(pen_masks,f"{dirname}/detected_inks/{basename}.pkl")
     return None
     coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
