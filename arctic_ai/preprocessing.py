@@ -99,8 +99,8 @@ def preprocess(basename="163_A1a",
             for k in xy:
                 if len(xy[k].geoms)==0:
                     del xy[k]
-            xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
             del xy['macro']
+            xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
             for k in xy:
                 xy[k]['basename']=basename
                 xy[k]['section_ID']=ID%n_pieces
