@@ -12,6 +12,7 @@ from scipy.special import softmax
 import torch
 from sauth import SimpleHTTPAuthHandler, serve_http
 from skimage.draw import circle
+from pathpretrain.utils import load_image
 Image.MAX_IMAGE_PIXELS = None
 
 class Numpy2DZI(ImageCreator):

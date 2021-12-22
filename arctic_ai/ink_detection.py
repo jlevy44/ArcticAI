@@ -55,6 +55,49 @@ def detect_inks(basename="163_A1a",
 
     img=load_image(f"{dirname}/inputs/{basename}{ext}")
     xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
+    with ProgressBar():
+        masks=dask.compute({ID:dask.delayed(np.load)(f"{dirname}/masks/{basename}_{ID}.npy") for ID in xy_bounds},scheduler="threading")[0]
+    imgs=dict()
+    edges=dict()
+    pen_masks=dict()
+    com=dict()
+    coord_translate={}
+    for ID in xy_bounds:
+        (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
+        msk=masks[ID].astype(np.uint8)
+        if not mask_compressed: msk=cv2.resize(msk.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
+        coord_translate[ID+1]=np.array([xmin,ymin])
+        imgs[ID]=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
+        edges[ID]=dask.delayed(get_edges)(msk)
+        pen_masks[ID]={k:dask.delayed(filter_tune)(imgs[ID],k,edges) for k in ink_fn}
+        com[ID]=dask.delayed(lambda x: np.vstack(np.where(x)).T.mean(0)*compression)(msk)
+    with ProgressBar():
+        edges,pen_masks,com=dask.compute(*(imgs,pen_masks,com),scheduler="threading")
+    with ProgressBar():
+        pen_masks=dask.compute({{dask.delayed(np.vstack(np.where((labels==obj) & (x))).T*compression)(pen_masks[k][color]) for color in pen_masks[k]}  for ID in xy_bounds},scheduler="threading")[0]
+    pd.to_pickle(pen_masks,f"{dirname}/detected_inks/{basename}.pkl")
+    return None
+    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
+    for color,obj in product(coords_df.index[:-1],coords_df.columns):
+        coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression-coord_translate[obj]
+        if return_mean: coords_df.loc[color,obj]=coords_df.loc[color,obj].mean(0)
+    for obj in coords_df.columns:
+        coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression-coord_translate[obj]
+
+    coords_df.to_pickle(f"{dirname}/detected_inks/{basename}.pkl")
+
+
+def detect_inks_old_v3(basename="163_A1a",
+                compression=8,
+                mask_compressed=True,
+                ext=".npy",
+                dirname=".",
+                return_mean=False):
+
+    os.makedirs(os.path.join(dirname,"detected_inks"),exist_ok=True)
+
+    img=load_image(f"{dirname}/inputs/{basename}{ext}")
+    xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
     img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
     mask=np.zeros(img.shape[:-1],dtype=np.uint8)
     with ProgressBar():
