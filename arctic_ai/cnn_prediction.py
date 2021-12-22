@@ -87,7 +87,7 @@ def generate_embeddings(basename="163_A1a",
     if f"{analysis_type}_map" in patch_info.columns:
         npy_stack=npy_stack[patch_info[f"{analysis_type}_map"].values]
         patch_info=patch_info[patch_info[f"{analysis_type}_map"].values]
-    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(f"basename_{analysis_type}_map",patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
+    train_model(model_save_loc=models[analysis_type],extract_embeddings=True,num_classes=num_classes[analysis_type],predict=True,embedding_out_dir=os.path.join(dirname,"cnn_embeddings/"),custom_dataset=CustomDataset(f"{basename}_{analysis_type}_map",patch_info,npy_stack,generate_transformers(224,256)['test']),gpu_id=gpu_id)
 
 
 def generate_embeddings_old(basename="163_A1a",
