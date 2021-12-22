@@ -89,7 +89,7 @@ def detect_inks(basename="163_A1a",
         mask[xmin:xmax,ymin:ymax]=msk
     if not mask_compressed: mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
     labels,mask=mask,mask>0
-    n_objects=np.max(np.flatten(labels))
+    n_objects=np.max(labels.flatten())
     # labels,n_objects=scilabel(mask)
     edges=get_edges(mask)
     pen_masks={k:filter_tune(img,k,edges) for k in ink_fn}
