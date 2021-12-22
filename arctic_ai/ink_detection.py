@@ -37,7 +37,6 @@ def tune_mask(mask,edges,min_size=30):
     return morph.remove_small_objects(mask, min_size=min_size, connectivity = 2, in_place=True)>0
 
 def filter_tune(img,color,edges):
-    print(img.shape,edges.shape)
     return tune_mask(~ink_fn[color](img),edges,min_size=ink_min_size[color])
 
 def get_edges(mask):
@@ -59,7 +58,6 @@ def detect_inks(basename="163_A1a",
     with ProgressBar():
         masks=dask.compute({ID:dask.delayed(np.load)(f"{dirname}/masks/{basename}_{ID}.npy") for ID in xy_bounds},scheduler="threading")[0]
     pen_masks=dict()
-    com=dict()
     coord_translate={}
     for ID in xy_bounds:
         (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
@@ -67,13 +65,12 @@ def detect_inks(basename="163_A1a",
         if not mask_compressed: msk=cv2.resize(msk.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
         coord_translate[ID]=np.array([xmin,ymin])
         im=cv2.resize(img[xmin:xmax,ymin:ymax],None,fx=1/compression,fy=1/compression)
-        print(im.shape,msk.shape)
         edges=dask.delayed(get_edges)(msk)#)
-        com[ID]=np.vstack(np.where(msk)).T.mean(0)*compression
+        com=np.vstack(np.where(msk)).T.mean(0)*compression
         pen_masks[ID]={k:dask.delayed(lambda x,y: filter_tune(x,k,y))(im,edges) for k in ink_fn}
+        pen_masks[ID]['center_mass']=com
     with ProgressBar():
         pen_masks=dask.compute(pen_masks,scheduler="threading")[0]
-        pen_masks={k:v[0] for k,v in pen_masks.items()}
     with ProgressBar():
         pen_masks=dask.compute({{dask.delayed(np.vstack(np.where((labels==obj) & (x))).T*compression)(pen_masks[k][color]) for color in pen_masks[k]}  for ID in xy_bounds},scheduler="threading")[0]
     pd.to_pickle(pen_masks,f"{dirname}/detected_inks/{basename}.pkl")
