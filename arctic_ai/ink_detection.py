@@ -6,6 +6,7 @@ import numpy as np, pandas as pd, copy
 import sys,os,cv2
 from itertools import product
 from pathpretrain.utils import load_image
+import warnings
 # sys.path.insert(0,os.path.abspath('.'))
 from .filters import filter_red_pen, filter_blue_pen, filter_green_pen
 
@@ -41,9 +42,69 @@ def get_edges(mask):
     edges = binary_dilation(edges,disk(30,bool))
     return edges
 
-def detect_inks(basename="163_A1a",
+def detect_inks(basename="163_A1a_1",compression=8.,*args,**kwargs):
+
+    os.makedirs("detected_inks",exist_ok=True)
+
+    img=load_image(f"inputs/{basename}.npy")
+    mask=np.load(f"masks/{basename}.npy")
+    ID=int(basename.split("_")[-1])
+    labels,mask=mask,labels>0
+    edges=get_edges(mask)
+    pen_masks={k:filter_tune(img,k,edges) for k in ink_fn}
+
+    # for k in ['green','blue','red','yellow']:
+    #     img[pen_masks[k],:]=colors[k]
+
+    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=[ID])#
+    coords_df.loc[color,ID]=np.vstack(np.where(mask & (pen_masks[color]))).T*compression
+    coords_df.loc["center_mass",ID]=np.vstack(np.where(mask)).T.mean(0)*compression
+
+    coords_df.to_pickle(f"detected_inks/{basename}.pkl")
+
+
+def detect_inks_old_v2(basename="163_A1a",
                 compression=8,
                 ext=".npy"):
+
+    os.makedirs("detected_inks",exist_ok=True)
+
+    img=load_image(f"inputs/{basename}{ext}")
+    xy_bounds=pd.read_pickle(os.path.join("masks",f"{basename}.pkl"))
+    img=cv2.resize(img,None,fx=1/compression,fy=1/compression)
+    mask=np.zeros(img.shape[:-1],dtype=np.uint8)
+    for ID in xy_bounds:
+        (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
+        msk=np.load(f"masks/{basename}_{ID}.npy").astype(np.uint8)
+        msk[msk>0]=ID+1
+        mask[xmin:xmax,ymin:ymax]=msk
+    mask=cv2.resize(mask.astype(int),None,fx=1/compression,fy=1/compression,interpolation=cv2.INTER_NEAREST).astype(bool)
+    labels,mask=mask,labels>0
+    n_objects=np.max(np.flatten(labels))
+    # labels,n_objects=scilabel(mask)
+    edges=get_edges(mask)
+    pen_masks={k:filter_tune(img,k,edges) for k in ink_fn}
+
+    # for k in ['green','blue','red','yellow']:
+    #     img[pen_masks[k],:]=colors[k]
+
+    coords_df=pd.DataFrame(index=list(ink_fn.keys())+["center_mass"],columns=np.arange(1,n_objects+1))#
+    for color,obj in product(coords_df.index[:-1],coords_df.columns):
+        coords_df.loc[color,obj]=np.vstack(np.where((labels==obj) & (pen_masks[color]))).T*compression
+    for obj in coords_df.columns:
+        coords_df.loc["center_mass",obj]=np.vstack(np.where(labels==obj)).T.mean(0)*compression
+
+    coords_df.to_pickle(f"detected_inks/{basename}.pkl")
+
+def detect_inks_old(basename="163_A1a",
+                compression=8,
+                ext=".npy"):
+
+    warnings.warn(
+            "Old ink detection is deprecated",
+            DeprecationWarning
+        )
+    raise RuntimeError
 
     os.makedirs("detected_inks",exist_ok=True)
 

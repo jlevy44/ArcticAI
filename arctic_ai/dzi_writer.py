@@ -58,8 +58,31 @@ class Numpy2DZI(ImageCreator):
         self.descriptor.save(destination)
         return destination
 
+def stitch_slide(arr,
+                 dzi_out,
+                 compression=4):
+    Numpy2DZI(compression=compression).create(arr,
+                                              dzi_out)
+
 def npy2dzi(npy_file='',
             dzi_out='',
             compression=1.):
-    Numpy2DZI(compression=compression).create(np.load(npy_file),
-                                              dzi_out)
+    stitch_slide(np.load(npy_file),compression,dzi_out)
+
+
+def stitch_slides(basename="",
+                 compression=4,
+                 dirname=".",
+                 ext=".tif"):
+    image=os.path.join(dirname,"inputs",f"{basename}{ext}")
+    basename=os.path.basename(image).replace(ext,'')
+    image=load_image(image)#np.load(image)
+    xy_bounds=pd.read_pickle(os.path.join(dirname,"masks",f"{basename}.pkl"))
+    write_files=[]
+    for ID in xy_bounds:
+        (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
+        dzi_out=os.path.join(dirname,"dzi_files",f"{basename}_{ID}_img.dzi")
+        arr=image[xmin:xmax,ymin:ymax]
+        write_files.append(dask.delayed(stitch_slide)(arr,dzi_out,compression))
+    with ProgressBar():
+        dask.compute(write_files,scheduler='threading')

@@ -5,6 +5,7 @@ import pickle, os
 from pathpretrain.train_model import train_model, generate_transformers, generate_kornia_transforms
 from tqdm import trange
 from scipy.special import softmax
+import warnings
 
 class WSI_Dataset(Dataset):
     def __init__(self, patches, transform):
@@ -25,6 +26,12 @@ def predict_nuclei(basename="163_A1a",
                    return_prob=False,
                    ext=".npy",
                    img_shape=None):
+    warnings.warn(
+            "Nuclei prediction is deprecated for Detectron Module",
+            DeprecationWarning
+        )
+    raise RuntimeError
+
     os.makedirs("nuclei_results",exist_ok=True)
 
     analysis_type="tumor"

@@ -3,7 +3,7 @@ from setuptools.command.install import install
 import subprocess
 import os
 
-PACKAGES=[
+PACKAGES=["tifffile==2021.11.2"
             ]
 
 with open('README.md','r', encoding='utf-8') as f:

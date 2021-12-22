@@ -1,14 +1,15 @@
 import glob, os, time, pickle
-from .preprocessing import preprocess
-from .cnn_prediction import generate_embeddings
+from .preprocessing import preprocess_old
+from .cnn_prediction import generate_embeddings_old
 from .generate_graph import create_graph_data
 from .gnn_prediction import predict
 from .quality_scores import generate_quality_scores
-from .ink_detection import detect_inks
+from .ink_detection import detect_inks_old
 from .compile_results import dump_results
 from .nuclei_prediction import predict_nuclei
 from .dzi_writer import npy2dzi
 from .case_prototype import Case
+import warnings
 
 def files_exist_overwrite(overwrite, files):
     return (not overwrite) and all([os.path.exists(file) for file in files])
@@ -35,7 +36,7 @@ def run_workflow_series(basename, compression, overwrite, ext):
 
     img_shape=None
     if not files_exist_overwrite(overwrite,out_files['preprocess']):
-        img_shape=preprocess(basename=basename,
+        img_shape=preprocess_old(basename=basename,
                threshold=0.05,
                patch_size=256,
                ext=ext)
@@ -45,7 +46,7 @@ def run_workflow_series(basename, compression, overwrite, ext):
     for k in ['tumor','macro']:
         print(f"{basename} {k} embedding")
         if not files_exist_overwrite(overwrite,out_files[f'cnn_{k}']):
-            generate_embeddings(basename=basename,
+            generate_embeddings_old(basename=basename,
                             analysis_type=k,
                            gpu_id=-1)
         times[f'cnn_{k}']=time.time()
@@ -72,7 +73,7 @@ def run_workflow_series(basename, compression, overwrite, ext):
 
     print(f"{basename} ink detection")
     if not files_exist_overwrite(overwrite,out_files['ink']):
-        detect_inks(basename=basename,
+        detect_inks_old(basename=basename,
                 compression=8,
                 ext=ext)
     times["ink"]=time.time()
@@ -96,6 +97,10 @@ def run_series(patient="163_A1",
                extract_dzi=False,
                ext=".npy"
                ):
+    warnings.warn(
+            "Will replace with new loop to process sections separately",
+            DeprecationWarning
+        )
     times=dict()
     for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
         basename=os.path.basename(f).replace(ext,"")#.replace(".tiff","").replace(".tif","").replace(".svs","")

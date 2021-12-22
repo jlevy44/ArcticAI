@@ -9,9 +9,11 @@ class Commands(object):
                    threshold=0.05,
                    patch_size=256,
                    ext=".npy",
-                   secondary_patch_size=0):
+                   secondary_patch_size=0,
+                   df_section_pieces_file="",
+                   image_mask_compression=8.):
         from arctic_ai.preprocessing import preprocess
-        preprocess(basename,threshold,patch_size,ext,secondary_patch_size)
+        preprocess(basename,threshold,patch_size,ext,secondary_patch_size,df_section_pieces_file=df_section_pieces_file,image_mask_compression=image_mask_compression)
 
     def cnn_predict(self,
                     basename="163_A1a",
@@ -24,7 +26,8 @@ class Commands(object):
                       basename="163_A1a",
                       analysis_type="tumor",
                       radius=256,
-                      min_component_size=600):
+                      min_component_size=600,
+                      no_component_break=True):
         from arctic_ai.generate_graph import create_graph_data
         create_graph_data(basename,analysis_type,radius,min_component_size)
 
@@ -34,11 +37,12 @@ class Commands(object):
                       radius=256,
                       min_component_size=600,
                       gpu_id=-1,
-                      generate_graph=True):
+                      generate_graph=True,
+                      no_component_break=True):
         from arctic_ai.gnn_prediction import predict
         if generate_graph:
             from arctic_ai.generate_graph import create_graph_data
-            create_graph_data(basename,analysis_type,radius,min_component_size)
+            create_graph_data(basename,analysis_type,radius,min_component_size,no_component_break=no_component_break)
         predict(basename,analysis_type,gpu_id)
 
     def nuclei_predict(self,
@@ -85,6 +89,18 @@ class Commands(object):
     def dzi_folder_setup(self):
         from arctic_ai.utils import return_osd_template
         return_osd_template()
+
+    def write_dzis(self,
+                   basename="",
+                    compression=4,
+                    dirname=".",
+                    ext=".tif"):
+        from arctic_ai.dzi_writer import stitch_slides
+        stitch_slides(basename=basename,
+                     compression=compression,
+                     dirname=dirname,
+                     ext=ext)
+
 
     def extract_dzis(self,
                      patient='163_A1',

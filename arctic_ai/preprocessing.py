@@ -1,16 +1,149 @@
 import os, tqdm
 import numpy as np, pandas as pd
-from pathflowai.utils import generate_tissue_mask
 from itertools import product
 from scipy.ndimage.morphology import binary_fill_holes as fill_holes
-from pathpretrain.utils import load_image
+from pathpretrain.utils import load_image, generate_tissue_mask
+from scipy.sparse.csgraph import connected_components
+from sklearn.neighbors import radius_neighbors_graph
+from shapely.geometry import MultiPoint
+import dask
+from dask.diagnostics import ProgressBar
+import alphashape
+import warnings
+# import pysnooper
 
 def preprocess(basename="163_A1a",
                threshold=0.05,
                patch_size=256,
                ext='.npy',
+               secondary_patch_size=0,
+               alpha=1024**-1,
+               no_break=False,
+               df_section_pieces_file='',
+               dirname=".",
+               image_mask_compression=1.
+               ):
+
+    assert secondary_patch_size==0
+    write_images=False
+    os.makedirs(os.path.join(dirname,"masks"),exist_ok=True)
+    os.makedirs(os.path.join(dirname,"patches"),exist_ok=True)
+    os.makedirs(os.path.join(dirname,"images"),exist_ok=True)
+
+    image=os.path.join(dirname,"inputs",f"{basename}{ext}")
+    basename=os.path.basename(image).replace(ext,'')
+    image=load_image(image)#np.load(image)
+    img_shape=image.shape[:-1]
+    df_section_pieces=None if not df_section_pieces_file else pd.read_pickle(df_section_pieces_file)
+
+    masks=dict()
+    masks['tumor_map']=generate_tissue_mask(image,
+                             compression=10,
+                             otsu=False,
+                             threshold=240,
+                             connectivity=8,
+                             kernel=5,
+                             min_object_size=100000,
+                             return_convex_hull=False,
+                             keep_holes=False,
+                             max_hole_size=6000,
+                             gray_before_close=True,
+                             blur_size=51)
+
+    x_max,y_max=masks['tumor_map'].shape
+    if no_break: masks['macro_map']=fill_holes(masks['tumor_map'])
+
+    patch_info=dict()
+    patches=dict()
+    include_patches=dict()
+    patch_info['orig']=pd.DataFrame([[basename,x,y,patch_size,"0"] for x,y in tqdm.tqdm(list(product(range(0,x_max-patch_size,patch_size),range(0,y_max-patch_size,patch_size))))],columns=['ID','x','y','patch_size','annotation'])
+
+    for k in (masks if no_break else ['tumor_map']):
+        patch_info[k]=patch_info['orig'].copy()
+        include_patches[k]=np.stack([masks[k][x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info[k][['x','y']].values.tolist())]).mean((1,2))>=threshold
+        patch_info[k]=patch_info[k][include_patches[k]]
+
+        if no_break:
+            patches[k]=np.stack([image[x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info[k][['x','y']].values.tolist())])
+            np.save(os.path.join(dirname,"masks",f"{basename}_{k}.npy"),masks[k])
+            np.save(os.path.join(dirname,"patches",f"{basename}_{k}.npy"),patches[include_patches])
+            patch_info[k].to_pickle(os.path.join(dirname,"patches",f"{basename}_{k}.pkl"))
+    if no_break: return None
+
+    if not no_break:
+        if df_section_pieces is not None: n_pieces=np.prod(df_section_pieces.loc[basename.replace("_ASAP","")])
+        G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=512*np.sqrt(2))
+        patch_info['tumor_map']['piece_ID']=connected_components(G)[1]
+        if df_section_pieces is None: n_pieces=patch_info['tumor_map']['piece_ID'].max()+1
+        patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].max()-patch_info['tumor_map']['piece_ID']
+        patch_info['tumor_map']=patch_info['tumor_map'][patch_info['tumor_map']['piece_ID'].isin(patch_info['tumor_map']['piece_ID'].value_counts().index[:n_pieces].values)]
+        patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map({v:k for k,v in enumerate(sorted(patch_info['tumor_map']['piece_ID'].unique()))})
+        if df_section_pieces is not None:
+            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']%df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
+        else:
+            G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=4096*np.sqrt(2))
+            patch_info['tumor_map']['section_ID']=connected_components(G)[1]
+            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['section_ID'].max()-patch_info['tumor_map']['section_ID']
+
+        pts=MultiPoint(patch_info['orig'][['x','y']].values)
+        patch_info_new=[]
+        for ID in patch_info['tumor_map']['piece_ID'].unique():
+            tmp_points=patch_info['tumor_map'][['x','y']][patch_info['tumor_map']['piece_ID']==ID].values
+            alpha_shape = alphashape.alphashape(tmp_points,alpha=alpha)
+            tmp_points=MultiPoint(tmp_points)
+            xy=dict()
+            xy['macro']=pts.intersection(alpha_shape).difference(alpha_shape.exterior.buffer(256))
+            xy['macro_tumor']=xy['macro'].intersection(tmp_points.buffer(64))
+            xy['macro_no_tumor']=xy['macro'].difference(tmp_points.buffer(64))
+            xy['tumor_no_macro']=tmp_points.difference(xy['macro'].buffer(64))
+            xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
+            del xy['macro']
+            for k in xy:
+                xy[k]['basename']=basename
+                xy[k]['section_ID']=ID%n_pieces
+                xy[k]['piece_ID']=ID
+                xy[k]['patch_size']=patch_size
+                xy[k]['Type']=k
+            xy=pd.concat(list(xy.values()),axis=0)
+            xy['tumor_map']=xy['Type'].isin(['macro_tumor','tumor_no_macro'])
+            xy['macro_map']=xy['Type'].isin(['macro_tumor','macro_no_tumor'])
+            patch_info_new.append(xy)
+
+        patch_info=pd.concat(patch_info_new,axis=0)
+        xy_bounds={}
+        write_files=[]
+        for ID in patch_info['section_ID'].unique():
+            include_patches=(patch_info['section_ID']==ID).values
+            patch_info_ID=patch_info[include_patches]
+            (xmin,ymin),(xmax,ymax)=patch_info_ID[['x','y']].min(0).values,(patch_info_ID[['x','y']].max(0).values+patch_size)
+            im=image[xmin:xmax,ymin:ymax]
+            msk=masks['tumor_map'][xmin:xmax,ymin:ymax]
+            patch_info_ID.loc[:,['x','y']]-=patch_info_ID[['x','y']].min(0)
+            patches_ID=np.stack([im[x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info_ID[['x','y']].values.tolist())])
+            patch_info_ID.reset_index(drop=True).to_pickle(os.path.join(dirname,"patches",f"{basename}_{ID}.pkl"))
+            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"patches",f"{basename}_{ID}.npy"),patches_ID))
+            write_files.append(dask.delayed(np.save)(os.path.join(dirname,"masks",f"{basename}_{ID}.npy"),cv2.resize(msk,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_NEAREST) if image_mask_compression>1 else msk))
+            if write_images:
+                write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),im))
+            elif image_mask_compression>1:
+                write_files.append(dask.delayed(np.save)(os.path.join(dirname,"images",f"{basename}_{ID}.npy"),cv2.resize(msk,None,fx=1/image_mask_compression,fy=1/image_mask_compression,interpolation=cv2.INTER_CUBIC)))
+            xy_bounds[ID]=((xmin,ymin),(xmax,ymax))
+        pd.to_pickle(xy_bounds,os.path.join(dirname,"masks",f"{basename}.pkl"))
+        with ProgressBar():
+            dask.compute(write_files,scheduler='threading')
+    return None
+
+def preprocess_old(basename="163_A1a",
+               threshold=0.05,
+               patch_size=256,
+               ext='.npy',
                secondary_patch_size=0):
 
+    warnings.warn(
+            "Old preprocessing is deprecated",
+            DeprecationWarning
+        )
+    raise RuntimeError
     os.makedirs("masks",exist_ok=True)
     os.makedirs("patches",exist_ok=True)
 
