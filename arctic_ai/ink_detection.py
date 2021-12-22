@@ -80,7 +80,7 @@ def detect_inks(basename="163_A1a",
     with ProgressBar():
         masks=dask.compute({ID:dask.delayed(np.load)(f"{dirname}/masks/{basename}_{ID}.npy") for ID in xy_bounds},scheduler="threading")[0]
     for ID in xy_bounds:
-        (xmin,ymin),(xmax,ymax)=xy_bounds[ID].astype(np.uint8)
+        (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
         msk=masks[ID].astype(np.uint8)#np.load(f"{dirname}/masks/{basename}_{ID}.npy").astype(np.uint8)
         if mask_compressed:
             xmin,ymin,xmax,ymax=(np.array([xmin,ymin,xmax,ymax])/compression).astype(int)
