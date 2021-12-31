@@ -105,7 +105,8 @@ def preprocess(basename="163_A1a",
             G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=4096*np.sqrt(2))
             patch_info['tumor_map']['section_ID']=connected_components(G)[1]
             patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['section_ID'].max()-patch_info['tumor_map']['section_ID']
-
+        n_sections=patch_info['tumor_map']['section_ID'].max()+1
+        n_pieces_per_section=(patch_info['tumor_map']['piece_ID'].max()+1)/n_sections
         pts=MultiPoint(patch_info['orig'][['x','y']].values)
         patch_info_new=[]
         for ID in patch_info['tumor_map']['piece_ID'].unique():
@@ -124,7 +125,7 @@ def preprocess(basename="163_A1a",
             xy={k:pd.DataFrame(np.array([(int(p.x),int(p.y)) for p in xy[k]]),columns=['x','y']) for k in xy}
             for k in xy:
                 xy[k]['basename']=basename
-                xy[k]['section_ID']=ID%n_pieces
+                xy[k]['section_ID']=ID//n_pieces_per_section
                 xy[k]['piece_ID']=ID
                 xy[k]['patch_size']=patch_size
                 xy[k]['Type']=k
