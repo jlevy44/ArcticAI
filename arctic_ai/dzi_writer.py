@@ -61,7 +61,9 @@ class Numpy2DZI(ImageCreator):
 
 def stitch_slide(arr,
                  dzi_out,
-                 compression=4):
+                 compression=4,
+                 mask=None):
+    if mask is not None: arr[mask]=255
     Numpy2DZI(compression=compression).create(arr,
                                               dzi_out)
 
@@ -74,7 +76,9 @@ def npy2dzi(npy_file='',
 def stitch_slides(basename="",
                  compression=4,
                  dirname=".",
-                 ext=".tif"):
+                 ext=".tif",
+                 pull_mask=False,
+                 mask_compresssion=8):
     image=os.path.join(dirname,"inputs",f"{basename}{ext}")
     basename=os.path.basename(image).replace(ext,'')
     image=load_image(image)#np.load(image)
@@ -84,6 +88,9 @@ def stitch_slides(basename="",
         (xmin,ymin),(xmax,ymax)=xy_bounds[ID]
         dzi_out=os.path.join(dirname,"dzi_files",f"{basename}_{ID}_img.dzi")
         arr=image[xmin:xmax,ymin:ymax]
-        write_files.append(dask.delayed(stitch_slide)(arr,dzi_out,compression))
+        mask=None
+        if pull_mask:
+            mask=dask.delayed(lambda x: cv2.resize(np.load(x).astype(int),arr.shape[:2],interpolation=cv2.INTER_NEAREST).astype(bool))(os.path.join(dirname,"masks",f"{basename}_{ID}.npy"))
+        write_files.append(dask.delayed(stitch_slide)(arr,dzi_out,compression,mask))
     with ProgressBar():
         dask.compute(write_files,scheduler='threading')

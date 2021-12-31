@@ -28,7 +28,7 @@ def generate_output_file_names(basename):
     out_files['nuclei']=[f"nuclei_results/{basename}.npy"]
     return out_files
 
-def run_workflow_series(basename, compression, overwrite, ext, dirname):
+def run_workflow_series(basename, compression, overwrite, ext, dirname, df_section_pieces_file):
     print(f"{basename} preprocessing")
 
     out_files=generate_output_file_names(basename)
@@ -42,7 +42,7 @@ def run_workflow_series(basename, compression, overwrite, ext, dirname):
                patch_size=256,
                ext=ext,
                no_break=False,
-               df_section_pieces_file="df_section_pieces.pkl",
+               df_section_pieces_file=df_section_pieces_file,
                image_mask_compression=8.,
                dirname=dirname)
 
@@ -104,7 +104,8 @@ def run_series(patient="163_A1",
                overwrite=True,
                record_time=True,
                ext=".npy",
-               dirname="."
+               dirname=".",
+               df_section_pieces_file="df_section_pieces.pkl"
                ):
     for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
         basename=os.path.basename(f).replace(ext,"")#.replace(".tiff","").replace(".tif","").replace(".svs","")
@@ -112,7 +113,8 @@ def run_series(patient="163_A1",
                             compression,
                             overwrite,
                             ext,
-                            dirname)
+                            dirname,
+                            df_section_pieces_file)
         if record_time:
             os.makedirs(os.path.join(dirname,"times"),exist_ok=True)
             pickle.dump(times,open(os.path.join(dirname,"times",f"{basename}.pkl"),'wb'))

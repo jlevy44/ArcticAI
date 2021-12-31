@@ -5,6 +5,7 @@ from scipy.ndimage.morphology import binary_fill_holes as fill_holes
 from pathpretrain.utils import load_image, generate_tissue_mask
 from scipy.sparse.csgraph import connected_components
 from sklearn.neighbors import radius_neighbors_graph
+from sklearn.cluster import SpectralClustering
 from shapely.geometry import Point, MultiPoint
 import cv2
 import dask
@@ -22,7 +23,8 @@ def preprocess(basename="163_A1a",
                no_break=False,
                df_section_pieces_file='',
                dirname=".",
-               image_mask_compression=1.
+               image_mask_compression=1.,
+               use_section=False
                ):
 
     assert secondary_patch_size==0
@@ -36,7 +38,7 @@ def preprocess(basename="163_A1a",
     basename=os.path.basename(image).replace(ext,'')
     image=load_image(image)#np.load(image)
     img_shape=image.shape[:-1]
-    df_section_pieces=None if not df_section_pieces_file else pd.read_pickle(df_section_pieces_file)
+    df_section_pieces=None if not (df_section_pieces_file and os.path.exists(df_section_pieces_file)) else pd.read_pickle(df_section_pieces_file)
 
     masks=dict()
     masks['tumor_map']=generate_tissue_mask(image,
@@ -81,7 +83,16 @@ def preprocess(basename="163_A1a",
         patch_info['tumor_map']=patch_info['tumor_map'][patch_info['tumor_map']['piece_ID'].isin(patch_info['tumor_map']['piece_ID'].value_counts().index[:n_pieces].values)]
         patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map({v:k for k,v in enumerate(sorted(patch_info['tumor_map']['piece_ID'].unique()))})
         if df_section_pieces is not None:
-            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']%df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
+            assert df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']<=2
+            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']//df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
+            while patch_info['tumor_map']['piece_ID'].max()+1<n_pieces:
+                split_piece=patch_info['tumor_map']['piece_ID'].value_counts().index[0]
+                G=radius_neighbors_graph(patch_info['tumor_map'].query(f"piece_ID=={split_piece}")[['x','y']], radius=patch_size*np.sqrt(2))
+                cl=SpectralClustering(n_clusters=2,affinity="precomputed",eigen_solver="amg",n_components=2).fit_predict(G)
+                patch_info['tumor_map'].loc[patch_info['tumor_map']['piece_ID']==split_piece,'piece_ID']=cl+patch_info['tumor_map']['piece_ID'].max()+1
+                patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map(dict(zip(patch_info['tumor_map'].groupby("piece_ID")['x'].mean().sort_values(ascending=False).index,range(patch_info['tumor_map']['piece_ID'].max()+1))))
+                patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']//df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
+            assert patch_info['tumor_map']['piece_ID'].max()+1==n_pieces
         else:
             G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=4096*np.sqrt(2))
             patch_info['tumor_map']['section_ID']=connected_components(G)[1]
@@ -119,10 +130,11 @@ def preprocess(basename="163_A1a",
         xy_bounds={}
         write_files=[]
         new_basenames=[]
-        for ID in patch_info['section_ID'].unique():
+
+        for ID in patch_info['section_ID' if use_section else 'piece_ID'].unique():
             new_basename=f"{basename}_{ID}"
             new_basenames.append(new_basename)
-            include_patches=(patch_info['section_ID']==ID).values
+            include_patches=(patch_info['section_ID' if use_section else 'piece_ID']==ID).values
             patch_info_ID=patch_info[include_patches]
             (xmin,ymin),(xmax,ymax)=patch_info_ID[['x','y']].min(0).values,(patch_info_ID[['x','y']].max(0).values+patch_size)
             im=image[xmin:xmax,ymin:ymax]

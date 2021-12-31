@@ -4,7 +4,8 @@ import subprocess
 import os
 
 PACKAGES=["tifffile==2021.11.2",
-          "toil"
+          "toil",
+          "pyamg"
             ]
 
 with open('README.md','r', encoding='utf-8') as f:
