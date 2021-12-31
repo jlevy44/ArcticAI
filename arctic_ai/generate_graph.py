@@ -47,6 +47,11 @@ def create_graph_data(basename="163_A1a",
                 datasets.append(dataset)
     else:
         dataset=Data(x=X, edge_index=G, y_new=torch.ones(len(X)), edge_attr=None, pos=xy)
+        np.random.seed(42)
+        idx=np.arange(X.shape[0])
+        idx2=np.arange(X.shape[0])
+        np.random.shuffle(idx)
+        train_idx,val_idx,test_idx=torch.tensor(np.isin(idx2,idx[:int(0.8*len(idx))])),torch.tensor(np.isin(idx2,idx[int(0.8*len(idx)):int(0.9*len(idx))])),torch.tensor(np.isin(idx2,idx[int(0.9*len(idx)):]))
         dataset.train_mask=train_idx
         dataset.val_mask=val_idx
         dataset.test_mask=test_idx
