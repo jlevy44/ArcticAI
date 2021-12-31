@@ -87,8 +87,7 @@ def preprocess(basename="163_A1a",
             G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=4096*np.sqrt(2))
             patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map(dict(zip(patch_info['tumor_map'].groupby("piece_ID")['x'].mean().sort_values(ascending=False).index,range(patch_info['tumor_map']['piece_ID'].max()+1))))
             patch_info['tumor_map']['section_ID']=connected_components(G)[1]
-            print(patch_info['tumor_map'])
-            complete=patch_info['tumor_map'][['section_ID','piece_ID']].groupby("section_ID")['piece_ID'].nunique()==df_section_pieces.loc[k.replace("_ASAP","")]['Pieces']
+            complete=patch_info['tumor_map'][['section_ID','piece_ID']].groupby("section_ID")['piece_ID'].nunique()==df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
             patch_info['tumor_map']['complete']=patch_info['tumor_map']['section_ID'].isin(complete[complete].index)
             while patch_info['tumor_map']['piece_ID'].max()+1<n_pieces:
                 split_pieces=patch_info['tumor_map']['piece_ID'].value_counts().index
@@ -100,7 +99,7 @@ def preprocess(basename="163_A1a",
                 cl=SpectralClustering(n_clusters=2,affinity="precomputed",assign_labels="discretize",eigen_solver="amg",n_components=2).fit_predict(G)
                 patch_info['tumor_map'].loc[patch_info['tumor_map']['piece_ID']==split_piece,'piece_ID']=cl+patch_info['tumor_map']['piece_ID'].max()+1
                 patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map(dict(zip(patch_info['tumor_map'].groupby("piece_ID")['x'].mean().sort_values(ascending=False).index,range(patch_info['tumor_map']['piece_ID'].max()+1))))
-            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']//df_section_pieces.loc[k.replace("_ASAP","")]['Pieces']
+            patch_info['tumor_map']['section_ID']=patch_info['tumor_map']['piece_ID']//df_section_pieces.loc[basename.replace("_ASAP","")]['Pieces']
             assert patch_info['tumor_map']['piece_ID'].max()+1==n_pieces
         else:
             G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=4096*np.sqrt(2))
