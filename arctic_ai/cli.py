@@ -68,7 +68,7 @@ class Commands(object):
         from arctic_ai.compile_results import dump_results
         dump_results(patient,scheme)
 
-    def run_series(self,
+    def run_series_old(self,
                    patient="163_A1",
                    input_dir="inputs",
                    scheme="2/1",
@@ -79,6 +79,18 @@ class Commands(object):
                    ext=".npy"):
         from arctic_ai.workflow import run_series
         run_series(patient,input_dir,scheme,compression,overwrite,record_time,extract_dzi,ext)
+
+    def run_series(self,
+                   patient="163_A1",
+                   input_dir="inputs",
+                   compression=1.,
+                   overwrite=True,
+                   record_time=False,
+                   ext=".npy",
+                   dirname=".",
+                   df_section_pieces_file="df_section_pieces.pkl"):
+        from arctic_ai.workflow import run_series
+        run_series(patient,input_dir,compression,overwrite,record_time,ext,dirname,df_section_pieces_file)
 
     def tif2npy(self,
                 in_file='',
