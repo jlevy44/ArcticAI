@@ -56,7 +56,7 @@ def create_graph_data(basename="163_A1a",
         dataset.val_mask=val_idx
         dataset.test_mask=test_idx
         dataset.id=basename
-        dataset.component=i
+        dataset.component=0
         datasets.append(dataset)
 
     pickle.dump(datasets,open(os.path.join(dirname,'graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'wb'))
