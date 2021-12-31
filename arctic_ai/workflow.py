@@ -67,7 +67,7 @@ def run_workflow_series(basename, compression, overwrite, ext, dirname, df_secti
                               analysis_type=k,
                               radius=256,
                               min_component_size=600,
-                              no_component_break=False,
+                              no_component_break=True,
                               dirname=dirname)
             times[f'graph_{k}'].append(time.time())
 
