@@ -38,7 +38,7 @@ def preprocess(basename="163_A1a",
     basename=os.path.basename(image).replace(ext,'')
     image=load_image(image)#np.load(image)
     img_shape=image.shape[:-1]
-    df_section_pieces=None if not (df_section_pieces_file and os.path.exists(df_section_pieces_file)) else pd.read_pickle(df_section_pieces_file)
+    df_section_pieces=None if not (df_section_pieces_file and os.path.exists(df_section_pieces_file)) else pd.read_pickle(df_section_pieces_file).reset_index().drop_duplicates().set_index("index")
 
     masks=dict()
     masks['tumor_map']=generate_tissue_mask(image,
