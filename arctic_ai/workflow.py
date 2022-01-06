@@ -6,7 +6,7 @@ from .gnn_prediction import predict
 from .quality_scores import generate_quality_scores
 from .ink_detection import detect_inks
 from .compile_results import dump_results
-from .nuclei_detection import predict_nuclei
+#from .nuclei_detection import predict_nuclei
 from .image_stitch import npy2dzi, stitch_slides
 from .case_prototype import Case
 import warnings
