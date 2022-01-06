@@ -75,10 +75,10 @@ def preprocess(basename="163_A1a",
     if no_break: return None
 
     if not no_break:
-        if df_section_pieces is not None: n_pieces=np.prod(df_section_pieces.loc[basename.replace("_ASAP","")])
+        if df_section_pieces is not None: n_pieces=int(np.prod(df_section_pieces.loc[basename.replace("_ASAP","")]))
         G=radius_neighbors_graph(patch_info['tumor_map'][['x','y']], radius=512*np.sqrt(2))
         patch_info['tumor_map']['piece_ID']=connected_components(G)[1]
-        if df_section_pieces is None: n_pieces=patch_info['tumor_map']['piece_ID'].max()+1
+        if df_section_pieces is None: n_pieces=int(patch_info['tumor_map']['piece_ID'].max()+1)
         patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].max()-patch_info['tumor_map']['piece_ID']
         patch_info['tumor_map']=patch_info['tumor_map'][patch_info['tumor_map']['piece_ID'].isin(patch_info['tumor_map']['piece_ID'].value_counts().index[:n_pieces].values)]
         patch_info['tumor_map']['piece_ID']=patch_info['tumor_map']['piece_ID'].map({v:k for k,v in enumerate(sorted(patch_info['tumor_map']['piece_ID'].unique()))})
@@ -147,7 +147,7 @@ def preprocess(basename="163_A1a",
             patch_info_ID=patch_info[include_patches]
             (xmin,ymin),(xmax,ymax)=patch_info_ID[['x','y']].min(0).values,(patch_info_ID[['x','y']].max(0).values+patch_size)
             im=image[xmin:xmax,ymin:ymax]
-            msk=masks['tumor_map'][xmin:xmax,ymin:ymax]
+            msk=masks['tumor_map'][xmin:xmax,ymin:ymax] # TODO: can break, need target tissue section
             patch_info_ID.loc[:,['x','y']]-=patch_info_ID[['x','y']].min(0)
             patches_ID=np.stack([im[x:x+patch_size,y:y+patch_size] for x,y in tqdm.tqdm(patch_info_ID[['x','y']].values.tolist())])
             patch_info_ID.reset_index(drop=True).to_pickle(os.path.join(dirname,"patches",f"{new_basename}.pkl"))

@@ -7,7 +7,7 @@ from .quality_scores import generate_quality_scores
 from .ink_detection import detect_inks_old
 from .compile_results import dump_results
 from .nuclei_prediction import predict_nuclei
-from .dzi_writer import npy2dzi
+from .image_stitch import npy2dzi
 from .case_prototype import Case
 import warnings
 from functools import partial

@@ -107,7 +107,7 @@ class Commands(object):
                     compression=4,
                     dirname=".",
                     ext=".tif"):
-        from arctic_ai.dzi_writer import stitch_slides
+        from arctic_ai.image_stitch import stitch_slides
         stitch_slides(basename=basename,
                      compression=compression,
                      dirname=dirname,

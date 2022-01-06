@@ -12,7 +12,7 @@ from scipy.special import softmax
 import torch
 from sauth import SimpleHTTPAuthHandler, serve_http
 from skimage.draw import circle
-from .dzi_writer import Numpy2DZI
+from .image_stitch import Numpy2DZI
 Image.MAX_IMAGE_PIXELS = None
 
 colors=dict(red=np.array([255,0,0]),
