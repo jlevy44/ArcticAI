@@ -5,8 +5,10 @@ import os
 
 PACKAGES=["tifffile==2021.11.2",
           "toil",
-          "pyamg"
-            ]
+          "pyamg",
+          "opencv-contrib-python==4.5.5.62",
+          "kornia @ git+ssh://git@github.com/kornia/kornia.git"
+      ]
 
 with open('README.md','r', encoding='utf-8') as f:
       long_description = f.read()

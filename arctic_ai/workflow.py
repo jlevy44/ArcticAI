@@ -28,7 +28,7 @@ def generate_output_file_names(basename):
     out_files['nuclei']=[f"nuclei_results/{basename}.npy"]
     return out_files
 
-def run_workflow_series(basename, compression, overwrite, ext, dirname, df_section_pieces_file):
+def run_workflow_series(basename, compression, overwrite, ext, dirname, df_section_pieces_file, run_stitch_slide):
     print(f"{basename} preprocessing")
 
     out_files=generate_output_file_names(basename)
@@ -89,11 +89,12 @@ def run_workflow_series(basename, compression, overwrite, ext, dirname, df_secti
 
     print(f"{basename} stitch")
     if not files_exist_overwrite(overwrite,out_files['ink']):
-        stitch_slides(basename=basename,
+        if run_stitch_slide:
+            stitch_slides(basename=basename,
                 compression=4,
                 ext=ext,
                 dirname=dirname)
-    times["stitch"]=time.time()
+            times["stitch"]=time.time()
 
     return times
 
@@ -105,7 +106,8 @@ def run_series(patient="163_A1",
                record_time=False,
                ext=".npy",
                dirname=".",
-               df_section_pieces_file="df_section_pieces.pkl"
+               df_section_pieces_file="df_section_pieces.pkl",
+               run_stitch_slide=True
                ):
     for f in glob.glob(os.path.join(input_dir,f"{patient}*{ext}")):
         basename=os.path.basename(f).replace(ext,"")#.replace(".tiff","").replace(".tif","").replace(".svs","")
@@ -114,7 +116,8 @@ def run_series(patient="163_A1",
                             overwrite,
                             ext,
                             dirname,
-                            df_section_pieces_file)
+                            df_section_pieces_file,
+                            run_stitch_slide)
         if record_time:
             os.makedirs(os.path.join(dirname,"times"),exist_ok=True)
             pickle.dump(times,open(os.path.join(dirname,"times",f"{basename}.pkl"),'wb'))
