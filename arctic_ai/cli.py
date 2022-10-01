@@ -1,4 +1,5 @@
 import fire, os
+import pysnooper
 
 class Commands(object):
     def __init__(self):
@@ -102,6 +103,7 @@ class Commands(object):
         from arctic_ai.utils import return_osd_template
         return_osd_template()
 
+    @pysnooper.snoop()
     def im2dzi(self,
                in_file='',
                out_dir='./',
