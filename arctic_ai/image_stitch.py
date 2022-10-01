@@ -70,7 +70,7 @@ def stitch_slide(arr,
 def npy2dzi(npy_file='',
             dzi_out='',
             compression=1.):
-    stitch_slide(np.load(npy_file),compression,dzi_out)
+    stitch_slide(load_image(npy_file),compression,dzi_out)
 
 
 def stitch_slides(basename="",

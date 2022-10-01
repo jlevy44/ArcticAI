@@ -1,4 +1,4 @@
-import fire
+import fire, os
 
 class Commands(object):
     def __init__(self):
@@ -101,6 +101,16 @@ class Commands(object):
     def dzi_folder_setup(self):
         from arctic_ai.utils import return_osd_template
         return_osd_template()
+
+    def im2dzi(self,
+               in_file='',
+               out_dir='./',
+               compression=1.):
+        from arctic_ai.image_stitch import npy2dzi
+        basename,_=os.path.splitext(os.path.basename(in_file))
+        npy2dzi(npy_file=in_file,
+                    dzi_out=os.path.join(out_dir,f"{basename}.dzi"),
+                    compression=compression)
 
     def write_dzis(self,
                    basename="",
