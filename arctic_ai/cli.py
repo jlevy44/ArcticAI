@@ -105,7 +105,7 @@ class Commands(object):
     def im2dzi(self,
                in_file='',
                out_dir='./',
-               compression=1.):
+               compression: float = 1.):
         from arctic_ai.image_stitch import npy2dzi
         basename,_=os.path.splitext(os.path.basename(in_file))
         npy2dzi(npy_file=in_file,
