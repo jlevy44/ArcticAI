@@ -1,3 +1,4 @@
+"""Contains functions related to generating embeddings for image patches using a convolutional neural network"""
 import os, torch, tqdm, pandas as pd, numpy as np
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
@@ -75,6 +76,24 @@ def generate_embeddings(basename="163_A1a",
                         analysis_type="tumor",
                        gpu_id=0,
                        dirname="."):
+    """Generate embeddings for patches in a WSI.
+
+    Parameters
+    ----------
+    basename : str
+        Basename of the WSI.
+    analysis_type : str
+        Type of analysis to perform. Can be either "tumor" or "macro".
+    gpu_id : int, optional
+        GPU to use for training. If not provided, uses CPU.
+    dirname : str, optional
+        Directory containing data for the WSI.
+
+    Returns
+    -------
+    None
+        The function saves the generated embeddings to the `cnn_embeddings` directory.
+    """
 
     os.makedirs(os.path.join(dirname,"cnn_embeddings"),exist_ok=True)
 

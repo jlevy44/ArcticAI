@@ -50,6 +50,29 @@ def detect_inks(basename="163_A1a",
                 ext=".npy",
                 dirname=".",
                 return_mean=False):
+    """
+    Detect inks in the specified image.
+
+    Parameters
+    ----------
+    basename : str, optional
+        The base name of the image to detect inks in, by default "163_A1a"
+    compression : float, optional
+        The compression factor to use when detecting inks, by default 8.
+    mask_compressed : bool, optional
+        Whether or not to use compressed masks, by default True
+    ext : str, optional
+        The file extension of the image, by default ".npy"
+    dirname : str, optional
+        The directory containing the image and masks, by default "."
+    return_mean : bool, optional
+        Whether or not to return the mean location of the detected inks, by default False
+
+    Returns
+    -------
+    None
+        The function saves the detected inks to a pickle file, but does not return anything.
+    """
 
     os.makedirs(os.path.join(dirname,"detected_inks"),exist_ok=True)
 

@@ -1,3 +1,4 @@
+"""Contains functions for stitching images together."""
 import pandas as pd, numpy as np
 from scipy.ndimage import label as scilabel
 from skimage.measure import regionprops_table
@@ -30,6 +31,21 @@ class Numpy2DZI(ImageCreator):
         self.compression=compression
 
     def create(self, source_arr, destination):
+        """
+        Create a deep zoom image from the given source array.
+
+        Parameters
+        ----------
+        source_arr : ndarray
+            The source image as a NumPy array.
+        destination : str
+            The destination folder to save the tiles to.
+
+        Returns
+        -------
+        str
+            The destination folder where the tiles were saved.
+        """
         # potentially have an option where dynamically softlink once deeper layer is made so slide is readily available, push to background process and write metadata for dash app to read
         # speed up image saving with dask https://stackoverflow.com/questions/54615625/how-to-save-dask-array-as-png-files-slice-by-slice https://github.com/dask/dask-image/issues/110
         self.image = PIL.Image.fromarray(source_arr if self.compression==1 else cv2.resize(source_arr,None,fx=1/self.compression,fy=1/self.compression,interpolation=cv2.INTER_CUBIC))

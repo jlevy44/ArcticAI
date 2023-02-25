@@ -12,6 +12,28 @@ def create_graph_data(basename="163_A1a",
                       min_component_size=600,
                       no_component_break=False,
                       dirname="."):
+    """
+    Creates graph data for use in the GNN model for a given tissue slide.
+
+    Parameters
+    ----------
+    basename : str
+        The basename of the tissue slide to create graph data for.
+    analysis_type : str
+        The type of analysis to perform. Can be "tumor" or "macro".
+    radius : int
+        The radius to use when creating the graph.
+    min_component_size : int
+        The minimum size a connected component must be to be included in the graph data.
+    no_component_break : bool
+        Whether to include all connected components in the graph data, or just the largest one.
+    dirname : str
+        The directory to save the graph data in.
+
+    Returns
+    -------
+    None
+    """
 
     os.makedirs(os.path.join(dirname,"graph_datasets"),exist_ok=True)
 

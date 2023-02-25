@@ -1,3 +1,4 @@
+"""Contains functions for creating command line interfaces."""
 import fire, os
 
 class Commands(object):

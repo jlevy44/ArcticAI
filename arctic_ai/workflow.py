@@ -1,3 +1,4 @@
+"""Contains functions for defining and running workflows."""
 import glob, os, time, pickle
 from .preprocessing import preprocess
 from .cnn_prediction import generate_embeddings
@@ -29,6 +30,32 @@ def generate_output_file_names(basename):
     return out_files
 
 def run_workflow_series(basename, compression, overwrite, ext, dirname, df_section_pieces_file, run_stitch_slide):
+    """
+    Runs image processing workflow in series on an input image.
+
+    Parameters
+    ----------
+    basename : str
+        The base name of the slide to process.
+    compression : float
+        The level of compression to apply to the slide.
+    overwrite : bool
+        Whether to overwrite existing files if they exist.
+    ext : str
+        The file extension of the slide.
+    dirname : str
+        The directory containing the slide and other relevant files.
+    df_section_pieces_file : str
+        The file containing information about the patches.
+    run_stitch_slide : bool
+        Whether to run the stitch_slides function after all other processing is complete.
+
+    Returns
+    -------
+    times : dict
+        A dictionary containing the times at which each step of the workflow was completed.
+    """
+
     print(f"{basename} preprocessing")
 
     out_files=generate_output_file_names(basename)

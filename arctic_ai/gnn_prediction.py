@@ -56,7 +56,24 @@ def predict(basename="163_A1a",
             analysis_type="tumor",
             gpu_id=0,
             dirname="."):
+    """
+    Run GNN prediction on patches.
 
+    Parameters
+    ----------
+    basename : str
+        Base name of the slide.
+    analysis_type : str
+        Type of analysis to run. Must be "tumor" or "macro".
+    gpu_id : int, optional
+        ID of the GPU to use. Default is 0.
+    dirname : str, optional
+        Directory to save results to. Default is current directory.
+
+    Returns
+    -------
+    None
+    """
     os.makedirs(os.path.join(dirname,"gnn_results"),exist_ok=True)
     hidden_topology=dict(tumor=[32,64,64],macro=[32,64,64])#[32]*3
     num_classes=dict(macro=4,tumor=3)

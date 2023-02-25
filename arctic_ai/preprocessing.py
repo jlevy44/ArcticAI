@@ -1,3 +1,4 @@
+""" Contains functions for preprocessing images."""
 import os, tqdm
 import numpy as np, pandas as pd
 from itertools import product
@@ -26,6 +27,28 @@ def preprocess(basename="163_A1a",
                image_mask_compression=1.,
                use_section=False
                ):
+    """
+    Preprocesses image and generates patches for training or testing.
+
+    Parameters
+    ----------
+    basename: str
+        The base filename of the image to be preprocessed.
+    threshold: float, optional
+        The maximum fraction of a patch that can be blank. Default is 0.05.
+    patch_size: int, optional
+        The size of the patches to be generated. Default is 256.
+    ext: str, optional
+        The file extension of the input image. Default is ".npy".
+    no_break: bool, optional
+        If True, the function will not break large images into multiple smaller ones. Default is False.
+    df_section_pieces_file: str, optional
+        The filename of the file containing metadata about image patches. Default is "section_pieces.pkl".
+    image_mask_compression: float, optional
+        The degree of compression applied to the image mask. Default is 8.
+    dirname: str, optional
+        The directory where input and output files are stored. Default is ".".
+    """
 
     assert secondary_patch_size==0
     write_images=False
