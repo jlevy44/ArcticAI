@@ -20,6 +20,14 @@ Welcome to ArcticAI's documentation!
 .. automodule:: arctic_ai.image_stitch
     :members:
 
+.. automodule:: arctic_ai.utils
+    :members:
+
+.. autosummary::
+   :recursive:
+
+   sphinx.environment.BuildEnvironment
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
