@@ -1,3 +1,6 @@
 *.img
 *.sif
 *.icloud
+.vscode
+arctic_ai/__pycache__/
+__pycache__

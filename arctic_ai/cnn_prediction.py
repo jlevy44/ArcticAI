@@ -76,7 +76,8 @@ def generate_embeddings(basename="163_A1a",
                         analysis_type="tumor",
                        gpu_id=0,
                        dirname="."):
-    """Generate embeddings for patches in a WSI.
+    """ 
+    Generate embeddings for patches in a WSI.
 
     Parameters
     ----------
