@@ -80,8 +80,9 @@ def predict(basename="163_A1a",
     if gpu_id>=0: torch.cuda.set_device(gpu_id)
     dataset=pickle.load(open(os.path.join(dirname,'graph_datasets',f"{basename}_{analysis_type}_map.pkl"),'rb'))
     model=GCNNet(dataset[0].x.shape[1],num_classes[analysis_type],hidden_topology=hidden_topology[analysis_type],p=0.,p2=0.)
-    model=model.cuda()
     model.load_state_dict(fix_state_dict(torch.load(os.path.join(dirname,"models",f"{analysis_type}_map_gnn.pth"),map_location=f"cuda:{gpu_id}" if gpu_id>=0 else "cpu")))
+    if torch.cuda.is_available():
+        model=model.cuda()
     dataloader=TG_DataLoader(dataset,shuffle=False,batch_size=1)
     model.eval()
     feature_extractor=GCNFeatures(model,bayes=False)
