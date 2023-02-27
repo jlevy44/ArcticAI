@@ -84,15 +84,20 @@ def predict(basename="163_A1a",
     model.load_state_dict(fix_state_dict(torch.load(os.path.join(dirname,"models",f"{analysis_type}_map_gnn.pth"),map_location=f"cuda:{gpu_id}" if gpu_id>=0 else "cpu")))
     dataloader=TG_DataLoader(dataset,shuffle=False,batch_size=1)
     model.eval()
-    feature_extractor=GCNFeatures(model,bayes=False).cuda()
+    feature_extractor=GCNFeatures(model,bayes=False)
+    if torch.cuda.is_available():
+        feature_extractor=feature_extractor.cuda()
     graphs=[]
     for i,data in enumerate(dataloader):
         with torch.no_grad():
             graph = to_networkx(data).to_undirected()
             model.train(False)
-            x=data.x.cuda()
+            x=data.x
+            edge_index=data.edge_index
+            if torch.cuda.is_available():
+                x=x.cuda()
+                edge_index=edge_index.cuda()
             xy=data.pos.numpy()
-            edge_index=data.edge_index.cuda()
             preds=feature_extractor(x,edge_index)
             z,y_pred=preds[0].detach().cpu().numpy(),preds[1].detach().cpu().numpy()
             graphs.append(dict(G=graph,xy=xy,z=z,y_pred=y_pred,slide=data.id,component=data.component))

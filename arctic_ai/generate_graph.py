@@ -38,7 +38,9 @@ def create_graph_data(basename="163_A1a",
     os.makedirs(os.path.join(dirname,"graph_datasets"),exist_ok=True)
 
     embeddings=torch.load(os.path.join(dirname,f"cnn_embeddings/{basename}_{analysis_type}_map.pkl"))
-    xy=torch.tensor(embeddings['patch_info'][['x','y']].values).float().cuda()
+    xy=torch.tensor(embeddings['patch_info'][['x','y']].values).float(
+    if torch.cuda.is_available():
+        xy=xy.cuda()
     X=torch.tensor(embeddings['embeddings'])
     G=radius_graph(xy, r=radius*np.sqrt(2), batch=None, loop=True)
     G=G.detach().cpu()
