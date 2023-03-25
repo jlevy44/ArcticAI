@@ -198,7 +198,8 @@ class Commands(object):
                    record_time=False,
                    ext=".npy",
                    dirname=".",
-                   df_section_pieces_file="df_section_pieces.pkl"):
+                   df_section_pieces_file="df_section_pieces.pkl",
+                   run_stitch_slide=True):
         """Runs the entire image analysis workflow on a given patient.
 
         Parameters
@@ -222,7 +223,7 @@ class Commands(object):
         This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are "163_A1", "inputs", 1.0, True, ".npy", ".", and "df_section_pieces.pkl", respectively.
         """
         from arctic_ai.workflow import run_series
-        run_series(patient,input_dir,compression,overwrite,record_time,ext,dirname,df_section_pieces_file)
+        run_series(patient,input_dir,compression,overwrite,record_time,ext,dirname,df_section_pieces_file,run_stitch_slide)
 
     def tif2npy(self,
                 in_file='',
