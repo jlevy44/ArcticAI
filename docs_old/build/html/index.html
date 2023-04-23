@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to ArcticAI’s documentation! &mdash; ArcticAI 0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            ArcticAI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to ArcticAI’s documentation!</a><ul>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands"><code class="docutils literal notranslate"><span class="pre">Commands</span></code></a><ul>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.None"><code class="docutils literal notranslate"><span class="pre">Commands.None</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.cnn_predict"><code class="docutils literal notranslate"><span class="pre">Commands.cnn_predict()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.gnn_predict"><code class="docutils literal notranslate"><span class="pre">Commands.gnn_predict()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.graph_creation"><code class="docutils literal notranslate"><span class="pre">Commands.graph_creation()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.im2dzi"><code class="docutils literal notranslate"><span class="pre">Commands.im2dzi()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.ink_detect"><code class="docutils literal notranslate"><span class="pre">Commands.ink_detect()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.nuclei_predict"><code class="docutils literal notranslate"><span class="pre">Commands.nuclei_predict()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.preprocess"><code class="docutils literal notranslate"><span class="pre">Commands.preprocess()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.run_series"><code class="docutils literal notranslate"><span class="pre">Commands.run_series()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.tif2npy"><code class="docutils literal notranslate"><span class="pre">Commands.tif2npy()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#arctic_ai.preprocessing.preprocess"><code class="docutils literal notranslate"><span class="pre">preprocess()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.generate_graph.create_graph_data"><code class="docutils literal notranslate"><span class="pre">create_graph_data()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cnn_prediction.CustomDataset"><code class="docutils literal notranslate"><span class="pre">CustomDataset</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cnn_prediction.CustomDatasetOld"><code class="docutils literal notranslate"><span class="pre">CustomDatasetOld</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cnn_prediction.generate_embeddings"><code class="docutils literal notranslate"><span class="pre">generate_embeddings()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNFeatures"><code class="docutils literal notranslate"><span class="pre">GCNFeatures</span></code></a><ul>
+<li><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNFeatures.forward"><code class="docutils literal notranslate"><span class="pre">GCNFeatures.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNNet"><code class="docutils literal notranslate"><span class="pre">GCNNet</span></code></a><ul>
+<li><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNNet.forward"><code class="docutils literal notranslate"><span class="pre">GCNNet.forward()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#arctic_ai.gnn_prediction.predict"><code class="docutils literal notranslate"><span class="pre">predict()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.image_stitch.Numpy2DZI"><code class="docutils literal notranslate"><span class="pre">Numpy2DZI</span></code></a><ul>
+<li><a class="reference internal" href="#arctic_ai.image_stitch.Numpy2DZI.create"><code class="docutils literal notranslate"><span class="pre">Numpy2DZI.create()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">ArcticAI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to ArcticAI’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-arctic_ai.cli">
+<span id="welcome-to-arcticai-s-documentation"></span><h1>Welcome to ArcticAI’s documentation!<a class="headerlink" href="#module-arctic_ai.cli" title="Permalink to this heading"></a></h1>
+<p>Contains functions for creating command line interfaces.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.cli.</span></span><span class="sig-name descname"><span class="pre">Commands</span></span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands" title="Permalink to this definition"></a></dt>
+<dd><p>A class for defining command line interface methods using Google Fire.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.None">
+<span class="sig-name descname"><span class="pre">None</span></span><a class="headerlink" href="#arctic_ai.cli.Commands.None" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.cnn_predict" title="arctic_ai.cli.Commands.cnn_predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnn_predict</span></code></a>([basename, analysis_type, gpu_id])</p></td>
+<td><p>Generates embeddings from preprocessed images using a trained CNN model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.gnn_predict" title="arctic_ai.cli.Commands.gnn_predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gnn_predict</span></code></a>([basename, analysis_type, ...])</p></td>
+<td><p>Run GNN prediction on patches.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.graph_creation" title="arctic_ai.cli.Commands.graph_creation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">graph_creation</span></code></a>([basename, analysis_type, ...])</p></td>
+<td><p>Generates a graph based on embeddings of image patches.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.im2dzi" title="arctic_ai.cli.Commands.im2dzi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">im2dzi</span></code></a>([in_file, out_dir, compression])</p></td>
+<td><p>Converts an input image file to Deep Zoom Image format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.ink_detect" title="arctic_ai.cli.Commands.ink_detect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ink_detect</span></code></a>([basename, compression])</p></td>
+<td><p>Detect inks in the specified image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.nuclei_predict" title="arctic_ai.cli.Commands.nuclei_predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nuclei_predict</span></code></a>([basename, gpu_id])</p></td>
+<td><p>Predicts the location of nuclei in an image.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.preprocess" title="arctic_ai.cli.Commands.preprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocess</span></code></a>([basename, threshold, ...])</p></td>
+<td><p>Preprocesses an image and generates patches for training or testing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.run_series" title="arctic_ai.cli.Commands.run_series"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_series</span></code></a>([patient, input_dir, ...])</p></td>
+<td><p>Runs the entire image analysis workflow on a given patient.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.tif2npy" title="arctic_ai.cli.Commands.tif2npy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tif2npy</span></code></a>([in_file, out_dir])</p></td>
+<td><p>Converts a .tif file to a .npy file.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>dump_results</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>dzi_folder_setup</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>extract_dzis</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>quality_score</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>run_series_old</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>write_dzis</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.cnn_predict">
+<span class="sig-name descname"><span class="pre">cnn_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#arctic_ai.cli.Commands.None" title="arctic_ai.cli.Commands.None"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.cnn_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.cnn_predict" title="Permalink to this definition"></a></dt>
+<dd><p>Generates embeddings from preprocessed images using a trained CNN model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str, optional</span></dt><dd><p>The base filename of the preprocessed image, default is “163_A1a”.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str, optional</span></dt><dd><p>The type of analysis to be performed, default is “tumor”.</p>
+</dd>
+<dt><strong>gpu_id</strong><span class="classifier">int, optional</span></dt><dd><p>The ID of the GPU to be used for prediction, default is -1 (CPU).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.gnn_predict">
+<span class="sig-name descname"><span class="pre">gnn_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_component_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generate_graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_component_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.gnn_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.gnn_predict" title="Permalink to this definition"></a></dt>
+<dd><p>Run GNN prediction on patches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str, optional</span></dt><dd><p>The base filename of the image to be segmented. Default is “163_A1a”.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str, optional</span></dt><dd><p>The type of analysis to perform. Default is “tumor”.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">int, optional</span></dt><dd><p>The radius used to generate the graphs. Default is 256.</p>
+</dd>
+<dt><strong>min_component_size</strong><span class="classifier">int, optional</span></dt><dd><p>The minimum size of the connected components in graph. Default is 600.</p>
+</dd>
+<dt><strong>gpu_id</strong><span class="classifier">int, optional</span></dt><dd><p>The ID of the GPU to use for prediction. Default is -1, which uses the CPU.</p>
+</dd>
+<dt><strong>generate_graph</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to generate the graph data from the preprocessed image. Default is True.</p>
+</dd>
+<dt><strong>no_component_break</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to avoid breaking connected components across patches. Default is True.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.graph_creation">
+<span class="sig-name descname"><span class="pre">graph_creation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_component_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_component_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#arctic_ai.cli.Commands.None" title="arctic_ai.cli.Commands.None"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.graph_creation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.graph_creation" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a graph based on embeddings of image patches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str, optional</span></dt><dd><p>The base filename of the image to be used for generating the graph. Default is “163_A1a”.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str, optional</span></dt><dd><p>The type of analysis to be performed on the image. Default is “tumor”.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">int, optional</span></dt><dd><p>The radius used for generating the graph. Default is 256.</p>
+</dd>
+<dt><strong>min_component_size</strong><span class="classifier">int, optional</span></dt><dd><p>The minimum size for a connected component in the graph. Default is 600.</p>
+</dd>
+<dt><strong>no_component_break</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, the function will not break up large connected components. Default is True.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.im2dzi">
+<span class="sig-name descname"><span class="pre">im2dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.im2dzi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.im2dzi" title="Permalink to this definition"></a></dt>
+<dd><p>Converts an input image file to Deep Zoom Image format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>in_file</strong><span class="classifier">str</span></dt><dd><p>The path to the input image file.</p>
+</dd>
+<dt><strong>out_dir</strong><span class="classifier">str</span></dt><dd><p>The output directory where the DZI file will be written.
+Default is “./”.</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier">float</span></dt><dd><p>The degree of compression applied to the DZI file. Default is 1.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.ink_detect">
+<span class="sig-name descname"><span class="pre">ink_detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.ink_detect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.ink_detect" title="Permalink to this definition"></a></dt>
+<dd><p>Detect inks in the specified image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str, optional</span></dt><dd><p>The base name of the image to detect inks in, by default “163_A1a”</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier">float, optional</span></dt><dd><p>The compression factor to use when detecting inks, by default 8.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>The function saves the detected inks to a pickle file, but does not return anything.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.nuclei_predict">
+<span class="sig-name descname"><span class="pre">nuclei_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#arctic_ai.cli.Commands.None" title="arctic_ai.cli.Commands.None"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.nuclei_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.nuclei_predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predicts the location of nuclei in an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str, optional</span></dt><dd><p>The base filename of the image to be processed. Default is “163_A1a”.</p>
+</dd>
+<dt><strong>gpu_id</strong><span class="classifier">int, optional</span></dt><dd><p>The ID of the GPU to use for prediction. Default is -1, which means that the CPU is used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.preprocess">
+<span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_patch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_mask_compression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#arctic_ai.cli.Commands.None" title="arctic_ai.cli.Commands.None"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.preprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Preprocesses an image and generates patches for training or testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>basename</strong> – The base filename of the image to be preprocessed.</p></li>
+<li><p><strong>threshold</strong> – The maximum fraction of a patch that can be blank. Default is 0.05.</p></li>
+<li><p><strong>patch_size</strong> – The size of the patches to be generated. Default is 256.</p></li>
+<li><p><strong>ext</strong> – The file extension of the input image. Default is “.npy”.</p></li>
+<li><p><strong>secondary_patch_size</strong> – The size of the patches for secondary processing. Default is 0.</p></li>
+<li><p><strong>df_section_pieces_file</strong> – The filename of the file containing metadata about image patches. Default is “section_pieces.pkl”.</p></li>
+<li><p><strong>image_mask_compression</strong> – The degree of compression applied to the image mask. Default is 8.</p></li>
+<li><p><strong>dirname</strong> – The directory where input and output files are stored. Default is “.”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.run_series">
+<span class="sig-name descname"><span class="pre">run_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inputs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df_section_pieces.pkl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.run_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.run_series" title="Permalink to this definition"></a></dt>
+<dd><p>Runs the entire image analysis workflow on a given patient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>patient</strong><span class="classifier">str, optional</span></dt><dd><p>The patient ID to be processed. Default is “163_A1”.</p>
+</dd>
+<dt><strong>input_dir</strong><span class="classifier">str, optional</span></dt><dd><p>The directory where the input files are stored. Default is “inputs”.</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier">float, optional</span></dt><dd><p>The degree of compression applied to the input image. Default is 1.0.</p>
+</dd>
+<dt><strong>overwrite</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, overwrite existing output files. Default is True.</p>
+</dd>
+<dt><strong>record_time</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, record the time taken for each step of the workflow. Default is False.</p>
+</dd>
+<dt><strong>ext</strong><span class="classifier">str, optional</span></dt><dd><p>The file extension of the input image. Default is “.npy”.</p>
+</dd>
+<dt><strong>dirname</strong><span class="classifier">str, optional</span></dt><dd><p>The directory where input and output files are stored. Default is “.”.</p>
+</dd>
+<dt><strong>df_section_pieces_file</strong><span class="classifier">str, optional</span></dt><dd><p>The filename of the file containing metadata about image patches. Default is “df_section_pieces.pkl”.</p>
+</dd>
+<dt><strong>This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are “163_A1”, “inputs”, 1.0, True, “.npy”, “.”, and “df_section_pieces.pkl”, respectively.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.tif2npy">
+<span class="sig-name descname"><span class="pre">tif2npy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.tif2npy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.tif2npy" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a .tif file to a .npy file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>in_file</strong><span class="classifier">str</span></dt><dd><p>The path to the input .tif file.</p>
+</dd>
+<dt><strong>out_dir</strong><span class="classifier">str</span></dt><dd><p>The path to the output directory where the .npy file will be saved.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.preprocessing"></span><p>Contains functions for preprocessing images.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="arctic_ai.preprocessing.preprocess">
+<span class="sig-prename descclassname"><span class="pre">arctic_ai.preprocessing.</span></span><span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0009765625</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_mask_compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_section</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/preprocessing.html#preprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.preprocessing.preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Preprocesses image and generates patches for training or testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename: str</strong></dt><dd><p>The base filename of the image to be preprocessed.</p>
+</dd>
+<dt><strong>threshold: float, optional</strong></dt><dd><p>The maximum fraction of a patch that can be blank. Default is 0.05.</p>
+</dd>
+<dt><strong>patch_size: int, optional</strong></dt><dd><p>The size of the patches to be generated. Default is 256.</p>
+</dd>
+<dt><strong>ext: str, optional</strong></dt><dd><p>The file extension of the input image. Default is “.npy”.</p>
+</dd>
+<dt><strong>no_break: bool, optional</strong></dt><dd><p>If True, the function will not break large images into multiple smaller ones. Default is False.</p>
+</dd>
+<dt><strong>df_section_pieces_file: str, optional</strong></dt><dd><p>The filename of the file containing metadata about image patches. Default is “section_pieces.pkl”.</p>
+</dd>
+<dt><strong>image_mask_compression: float, optional</strong></dt><dd><p>The degree of compression applied to the image mask. Default is 8.</p>
+</dd>
+<dt><strong>dirname: str, optional</strong></dt><dd><p>The directory where input and output files are stored. Default is “.”.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.generate_graph"></span><dl class="py function">
+<dt class="sig sig-object py" id="arctic_ai.generate_graph.create_graph_data">
+<span class="sig-prename descclassname"><span class="pre">arctic_ai.generate_graph.</span></span><span class="sig-name descname"><span class="pre">create_graph_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_component_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_component_break</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/generate_graph.html#create_graph_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.generate_graph.create_graph_data" title="Permalink to this definition"></a></dt>
+<dd><p>Creates graph data for use in the GNN model for a given tissue slide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str</span></dt><dd><p>The basename of the tissue slide to create graph data for.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str</span></dt><dd><p>The type of analysis to perform. Can be “tumor” or “macro”.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>The radius to use when creating the graph.</p>
+</dd>
+<dt><strong>min_component_size</strong><span class="classifier">int</span></dt><dd><p>The minimum size a connected component must be to be included in the graph data.</p>
+</dd>
+<dt><strong>no_component_break</strong><span class="classifier">bool</span></dt><dd><p>Whether to include all connected components in the graph data, or just the largest one.</p>
+</dd>
+<dt><strong>dirname</strong><span class="classifier">str</span></dt><dd><p>The directory to save the graph data in.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.cnn_prediction"></span><p>Contains functions related to generating embeddings for image patches using a convolutional neural network</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.cnn_prediction.CustomDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.cnn_prediction.</span></span><span class="sig-name descname"><span class="pre">CustomDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cnn_prediction.html#CustomDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cnn_prediction.CustomDataset" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>embed</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.cnn_prediction.CustomDatasetOld">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.cnn_prediction.</span></span><span class="sig-name descname"><span class="pre">CustomDatasetOld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patch_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npy_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cnn_prediction.html#CustomDatasetOld"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cnn_prediction.CustomDatasetOld" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>embed</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="arctic_ai.cnn_prediction.generate_embeddings">
+<span class="sig-prename descclassname"><span class="pre">arctic_ai.cnn_prediction.</span></span><span class="sig-name descname"><span class="pre">generate_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cnn_prediction.html#generate_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cnn_prediction.generate_embeddings" title="Permalink to this definition"></a></dt>
+<dd><p>Generate embeddings for patches in a WSI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str</span></dt><dd><p>Basename of the WSI.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str</span></dt><dd><p>Type of analysis to perform. Can be either “tumor” or “macro”.</p>
+</dd>
+<dt><strong>gpu_id</strong><span class="classifier">int, optional</span></dt><dd><p>GPU to use for training. If not provided, uses CPU.</p>
+</dd>
+<dt><strong>dirname</strong><span class="classifier">str, optional</span></dt><dd><p>Directory containing data for the WSI.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>The function saves the generated embeddings to the <cite>cnn_embeddings</cite> directory.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.gnn_prediction"></span><dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.gnn_prediction.GCNFeatures">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.gnn_prediction.</span></span><span class="sig-name descname"><span class="pre">GCNFeatures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gcn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bayes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/gnn_prediction.html#GCNFeatures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.gnn_prediction.GCNFeatures" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_module</span></code>(name, module)</p></td>
+<td><p>Adds a child module to the current module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(fn)</p></td>
+<td><p>Applies <code class="docutils literal notranslate"><span class="pre">fn</span></code> recursively to every submodule (as returned by <code class="docutils literal notranslate"><span class="pre">.children()</span></code>) as well as self.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bfloat16</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">buffers</span></code>([recurse])</p></td>
+<td><p>Returns an iterator over module buffers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">children</span></code>()</p></td>
+<td><p>Returns an iterator over immediate children modules.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cpu</span></code>()</p></td>
+<td><p>Moves all model parameters and buffers to the CPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cuda</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the GPU.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">double</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">double</span></code> datatype.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code>()</p></td>
+<td><p>Sets the module in evaluation mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">extra_repr</span></code>()</p></td>
+<td><p>Set the extra representation of the module</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">float</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNFeatures.forward" title="arctic_ai.gnn_prediction.GCNFeatures.forward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">forward</span></code></a>(x, edge_index[, edge_attr])</p></td>
+<td><p>Defines the computation performed at every call.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_buffer</span></code>(target)</p></td>
+<td><p>Returns the buffer given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_extra_state</span></code>()</p></td>
+<td><p>Returns any extra state to include in the module's state_dict.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code>(target)</p></td>
+<td><p>Returns the parameter given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_submodule</span></code>(target)</p></td>
+<td><p>Returns the submodule given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">half</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">half</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ipu</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the IPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code>(state_dict[, strict])</p></td>
+<td><p>Copies parameters and buffers from <code class="xref py py-attr docutils literal notranslate"><span class="pre">state_dict</span></code> into this module and its descendants.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">modules</span></code>()</p></td>
+<td><p>Returns an iterator over all modules in the network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_buffers</span></code>([prefix, recurse])</p></td>
+<td><p>Returns an iterator over module buffers, yielding both the name of the buffer as well as the buffer itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_children</span></code>()</p></td>
+<td><p>Returns an iterator over immediate children modules, yielding both the name of the module as well as the module itself.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_modules</span></code>([memo, prefix, remove_duplicate])</p></td>
+<td><p>Returns an iterator over all modules in the network, yielding both the name of the module as well as the module itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_parameters</span></code>([prefix, recurse])</p></td>
+<td><p>Returns an iterator over module parameters, yielding both the name of the parameter as well as the parameter itself.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code>([recurse])</p></td>
+<td><p>Returns an iterator over module parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_backward_hook</span></code>(hook)</p></td>
+<td><p>Registers a backward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_buffer</span></code>(name, tensor[, persistent])</p></td>
+<td><p>Adds a buffer to the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_forward_hook</span></code>(hook)</p></td>
+<td><p>Registers a forward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_forward_pre_hook</span></code>(hook)</p></td>
+<td><p>Registers a forward pre-hook on the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_full_backward_hook</span></code>(hook)</p></td>
+<td><p>Registers a backward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_load_state_dict_post_hook</span></code>(hook)</p></td>
+<td><p>Registers a post hook to be run after module's <code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code> is called.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module</span></code>(name, module)</p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">add_module()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_parameter</span></code>(name, param)</p></td>
+<td><p>Adds a parameter to the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_grad_</span></code>([requires_grad])</p></td>
+<td><p>Change if autograd should record operations on parameters in this module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_extra_state</span></code>(state)</p></td>
+<td><p>This function is called from <code class="xref py py-func docutils literal notranslate"><span class="pre">load_state_dict()</span></code> to handle any extra state found within the <cite>state_dict</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">share_memory</span></code>()</p></td>
+<td><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.Tensor.share_memory_()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code>(*args[, destination, prefix, ...])</p></td>
+<td><p>Returns a dictionary containing references to the whole state of the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to</span></code>(*args, **kwargs)</p></td>
+<td><p>Moves and/or casts the parameters and buffers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_empty</span></code>(*, device)</p></td>
+<td><p>Moves the parameters and buffers to the specified device without copying storage.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code>([mode])</p></td>
+<td><p>Sets the module in training mode.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>(dst_type)</p></td>
+<td><p>Casts all parameters and buffers to <code class="xref py py-attr docutils literal notranslate"><span class="pre">dst_type</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">xpu</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the XPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zero_grad</span></code>([set_to_none])</p></td>
+<td><p>Sets gradients of all model parameters to zero.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>__call__</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.gnn_prediction.GCNFeatures.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/gnn_prediction.html#GCNFeatures.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.gnn_prediction.GCNFeatures.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.gnn_prediction.GCNNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.gnn_prediction.</span></span><span class="sig-name descname"><span class="pre">GCNNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_topology</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[32,</span> <span class="pre">64,</span> <span class="pre">128,</span> <span class="pre">128]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_each</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/gnn_prediction.html#GCNNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.gnn_prediction.GCNNet" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_module</span></code>(name, module)</p></td>
+<td><p>Adds a child module to the current module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(fn)</p></td>
+<td><p>Applies <code class="docutils literal notranslate"><span class="pre">fn</span></code> recursively to every submodule (as returned by <code class="docutils literal notranslate"><span class="pre">.children()</span></code>) as well as self.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bfloat16</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">buffers</span></code>([recurse])</p></td>
+<td><p>Returns an iterator over module buffers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">children</span></code>()</p></td>
+<td><p>Returns an iterator over immediate children modules.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cpu</span></code>()</p></td>
+<td><p>Moves all model parameters and buffers to the CPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cuda</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the GPU.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">double</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">double</span></code> datatype.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code>()</p></td>
+<td><p>Sets the module in evaluation mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">extra_repr</span></code>()</p></td>
+<td><p>Set the extra representation of the module</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">float</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.gnn_prediction.GCNNet.forward" title="arctic_ai.gnn_prediction.GCNNet.forward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">forward</span></code></a>(x, edge_index[, edge_attr])</p></td>
+<td><p>Defines the computation performed at every call.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_buffer</span></code>(target)</p></td>
+<td><p>Returns the buffer given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_extra_state</span></code>()</p></td>
+<td><p>Returns any extra state to include in the module's state_dict.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code>(target)</p></td>
+<td><p>Returns the parameter given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_submodule</span></code>(target)</p></td>
+<td><p>Returns the submodule given by <code class="docutils literal notranslate"><span class="pre">target</span></code> if it exists, otherwise throws an error.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">half</span></code>()</p></td>
+<td><p>Casts all floating point parameters and buffers to <code class="docutils literal notranslate"><span class="pre">half</span></code> datatype.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ipu</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the IPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code>(state_dict[, strict])</p></td>
+<td><p>Copies parameters and buffers from <code class="xref py py-attr docutils literal notranslate"><span class="pre">state_dict</span></code> into this module and its descendants.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">modules</span></code>()</p></td>
+<td><p>Returns an iterator over all modules in the network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_buffers</span></code>([prefix, recurse])</p></td>
+<td><p>Returns an iterator over module buffers, yielding both the name of the buffer as well as the buffer itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_children</span></code>()</p></td>
+<td><p>Returns an iterator over immediate children modules, yielding both the name of the module as well as the module itself.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_modules</span></code>([memo, prefix, remove_duplicate])</p></td>
+<td><p>Returns an iterator over all modules in the network, yielding both the name of the module as well as the module itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_parameters</span></code>([prefix, recurse])</p></td>
+<td><p>Returns an iterator over module parameters, yielding both the name of the parameter as well as the parameter itself.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameters</span></code>([recurse])</p></td>
+<td><p>Returns an iterator over module parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_backward_hook</span></code>(hook)</p></td>
+<td><p>Registers a backward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_buffer</span></code>(name, tensor[, persistent])</p></td>
+<td><p>Adds a buffer to the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_forward_hook</span></code>(hook)</p></td>
+<td><p>Registers a forward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_forward_pre_hook</span></code>(hook)</p></td>
+<td><p>Registers a forward pre-hook on the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_full_backward_hook</span></code>(hook)</p></td>
+<td><p>Registers a backward hook on the module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_load_state_dict_post_hook</span></code>(hook)</p></td>
+<td><p>Registers a post hook to be run after module's <code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code> is called.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_module</span></code>(name, module)</p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">add_module()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_parameter</span></code>(name, param)</p></td>
+<td><p>Adds a parameter to the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">requires_grad_</span></code>([requires_grad])</p></td>
+<td><p>Change if autograd should record operations on parameters in this module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_extra_state</span></code>(state)</p></td>
+<td><p>This function is called from <code class="xref py py-func docutils literal notranslate"><span class="pre">load_state_dict()</span></code> to handle any extra state found within the <cite>state_dict</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">share_memory</span></code>()</p></td>
+<td><p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.Tensor.share_memory_()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code>(*args[, destination, prefix, ...])</p></td>
+<td><p>Returns a dictionary containing references to the whole state of the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to</span></code>(*args, **kwargs)</p></td>
+<td><p>Moves and/or casts the parameters and buffers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_empty</span></code>(*, device)</p></td>
+<td><p>Moves the parameters and buffers to the specified device without copying storage.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code>([mode])</p></td>
+<td><p>Sets the module in training mode.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>(dst_type)</p></td>
+<td><p>Casts all parameters and buffers to <code class="xref py py-attr docutils literal notranslate"><span class="pre">dst_type</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">xpu</span></code>([device])</p></td>
+<td><p>Moves all model parameters and buffers to the XPU.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zero_grad</span></code>([set_to_none])</p></td>
+<td><p>Sets gradients of all model parameters to zero.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>__call__</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.gnn_prediction.GCNNet.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/gnn_prediction.html#GCNNet.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.gnn_prediction.GCNNet.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="arctic_ai.gnn_prediction.predict">
+<span class="sig-prename descclassname"><span class="pre">arctic_ai.gnn_prediction.</span></span><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tumor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/gnn_prediction.html#predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.gnn_prediction.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Run GNN prediction on patches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basename</strong><span class="classifier">str</span></dt><dd><p>Base name of the slide.</p>
+</dd>
+<dt><strong>analysis_type</strong><span class="classifier">str</span></dt><dd><p>Type of analysis to run. Must be “tumor” or “macro”.</p>
+</dd>
+<dt><strong>gpu_id</strong><span class="classifier">int, optional</span></dt><dd><p>ID of the GPU to use. Default is 0.</p>
+</dd>
+<dt><strong>dirname</strong><span class="classifier">str, optional</span></dt><dd><p>Directory to save results to. Default is current directory.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.image_stitch"></span><p>Contains functions for stitching images together.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="arctic_ai.image_stitch.Numpy2DZI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">arctic_ai.image_stitch.</span></span><span class="sig-name descname"><span class="pre">Numpy2DZI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">254</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resize_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/image_stitch.html#Numpy2DZI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.image_stitch.Numpy2DZI" title="Permalink to this definition"></a></dt>
+<dd><p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.image_stitch.Numpy2DZI.create" title="arctic_ai.image_stitch.Numpy2DZI.create"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create</span></code></a>(source_arr, destination)</p></td>
+<td><p>Create a deep zoom image from the given source array.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_image</span></code>(level)</p></td>
+<td><p>Returns the bitmap image at the given level.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tiles</span></code>(level)</p></td>
+<td><p>Iterator for all tiles in the given level.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.image_stitch.Numpy2DZI.create">
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/image_stitch.html#Numpy2DZI.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.image_stitch.Numpy2DZI.create" title="Permalink to this definition"></a></dt>
+<dd><p>Create a deep zoom image from the given source array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>source_arr</strong><span class="classifier">ndarray</span></dt><dd><p>The source image as a NumPy array.</p>
+</dd>
+<dt><strong>destination</strong><span class="classifier">str</span></dt><dd><p>The destination folder to save the tiles to.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>str</dt><dd><p>The destination folder where the tiles were saved.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-arctic_ai.utils"></span><table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sphinx.environment.BuildEnvironment</span></code>(app)</p></td>
+<td><p>The environment in which the ReST files are translated.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Joshua Levy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
