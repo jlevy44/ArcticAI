@@ -11,7 +11,7 @@ with open('README.md','r', encoding='utf-8') as f:
 
 setup(name='arctic_ai',
       version='0.1',
-      description='Python package for Arctic Workflow..',
+      description='Python package for Arctic Workflow.',
       url='https://github.com/jlevy44/ArcticAI_Prototype',
       author='Joshua Levy',
       author_email='joshualevy44@berkeley.edu',
