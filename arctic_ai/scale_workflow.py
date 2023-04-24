@@ -80,7 +80,7 @@ def deploy_patient(job, job_dict, memory="2G", cores=2, disk="1M"):
     #     gnn_predict_jobs[k].addChild(quality_job)
     ink_job=job.addChildJobFn(ink_detect, job_dict, memory, cores, disk)
     jobs['preprocess'].addChild(ink_job)
-    jobs['preprocess'].addChild(nuclei_job)
+    # jobs['preprocess'].addChild(nuclei_job)
     
     return f"Processed {job_dict['basename']}"
 
