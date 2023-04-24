@@ -1,3 +1,7 @@
+"""Nuclei Detection
+==========
+Functions to support cell localization. 
+"""
 import os
 import numpy as np
 from PIL import Image
@@ -9,7 +13,7 @@ from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 
-from utils import get_groups_dict
+from .utils import get_groups_dict
 
 class BasePredictor:
     @property

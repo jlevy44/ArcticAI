@@ -1,3 +1,8 @@
+"""
+Graph Data 
+==========
+Functions for graph dataset generation.
+"""
 import os, torch, numpy as np, pandas as pd
 import pickle
 import scipy.sparse as sps

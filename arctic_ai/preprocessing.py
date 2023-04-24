@@ -1,4 +1,6 @@
-""" Contains functions for preprocessing images."""
+"""Preprocess 
+==========
+Contains functions for preprocessing images."""
 import os, tqdm
 import numpy as np, pandas as pd
 from itertools import product

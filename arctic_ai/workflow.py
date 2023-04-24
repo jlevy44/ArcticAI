@@ -1,4 +1,7 @@
-"""Contains functions for defining and running workflows."""
+"""Serial Workflow 
+==========
+Contains functions for serial processing of tissue sections. 
+Contains functions for defining and running workflows."""
 import glob, os, time, pickle
 from .preprocessing import preprocess
 from .cnn_prediction import generate_embeddings

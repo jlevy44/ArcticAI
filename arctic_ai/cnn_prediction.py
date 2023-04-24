@@ -1,4 +1,9 @@
-"""Contains functions related to generating embeddings for image patches using a convolutional neural network"""
+"""
+CNN 
+==========
+
+Contains functions related to generating embeddings for image patches using a convolutional neural network
+"""
 import os, torch, tqdm, pandas as pd, numpy as np
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arctic_ai.detection_workflows.follicle_detection &mdash; ArcticAI 0.3 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ArcticAI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ArcticAI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arctic_ai.detection_workflows.follicle_detection</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arctic_ai.detection_workflows.follicle_detection</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Follicle Detection  </span>
+<span class="sd">==========</span>
+<span class="sd">Contains functions for detecting follicles in images.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">skimage.draw</span> <span class="kn">import</span> <span class="n">disk</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">detectron2</span> <span class="kn">import</span> <span class="n">model_zoo</span>
+<span class="kn">from</span> <span class="nn">detectron2.engine</span> <span class="kn">import</span> <span class="n">DefaultPredictor</span>
+<span class="kn">from</span> <span class="nn">detectron2.config</span> <span class="kn">import</span> <span class="n">get_cfg</span>
+<span class="kn">from</span> <span class="nn">detectron2.utils.visualizer</span> <span class="kn">import</span> <span class="n">Visualizer</span>
+<span class="kn">from</span> <span class="nn">detectron2.data</span> <span class="kn">import</span> <span class="n">MetadataCatalog</span><span class="p">,</span> <span class="n">DatasetCatalog</span>
+<span class="kn">from</span> <span class="nn">detectron2.structures</span> <span class="kn">import</span> <span class="n">BoxMode</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">TensorDataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">tifffile</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">softmax</span>
+<span class="kn">import</span> <span class="nn">dask</span>
+<span class="kn">from</span> <span class="nn">dask.diagnostics</span> <span class="kn">import</span> <span class="n">ProgressBar</span>
+<span class="kn">from</span> <span class="nn">pathpretrain.utils</span> <span class="kn">import</span> <span class="n">load_image</span>
+<span class="kn">import</span> <span class="nn">fire</span>
+
+<span class="n">white_square</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1024</span><span class="p">,</span><span class="mi">1024</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">*</span><span class="mi">255</span>
+
+<span class="k">def</span> <span class="nf">check_update</span><span class="p">(</span><span class="n">new_square</span><span class="p">):</span>
+    <span class="n">white_square_</span><span class="o">=</span><span class="n">new_square</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_square</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">1024</span><span class="p">,</span><span class="mi">1024</span><span class="p">,</span><span class="mi">3</span><span class="p">))):</span>
+        <span class="n">white_square_</span><span class="o">=</span><span class="n">white_square</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">white_square_</span><span class="p">[:</span><span class="n">new_square</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],:</span><span class="n">new_square</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">=</span><span class="n">new_square</span>
+    <span class="k">return</span> <span class="n">white_square_</span>
+
+<span class="k">def</span> <span class="nf">update_gnn_res</span><span class="p">(</span><span class="n">out_fname</span><span class="p">,</span><span class="n">gnn_res</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span><span class="n">patches_new</span><span class="p">,</span><span class="n">disk_mask</span><span class="p">,</span><span class="n">y_pred</span><span class="p">,</span><span class="n">y_tumor</span><span class="p">,</span><span class="n">tumor_thres</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">batch_size</span><span class="p">,</span><span class="n">num_workers</span><span class="p">):</span>
+    <span class="n">X</span><span class="o">=</span><span class="n">TensorDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">patches_new</span><span class="p">[</span><span class="o">...</span><span class="p">,::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="c1">#/255</span>
+    <span class="n">dataloader</span><span class="o">=</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span><span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">)</span>
+    <span class="n">preds</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span><span class="c1">#tqdm.tqdm(,total=len(dataloader.dataset)//dataloader.batch_size):</span>
+            <span class="n">preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">y_pred</span><span class="p">[</span><span class="s1">&#39;panoptic_seg&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">y_pred</span> <span class="ow">in</span> <span class="n">model</span><span class="p">([{</span><span class="s2">&quot;image&quot;</span><span class="p">:</span><span class="n">im</span><span class="p">,</span> <span class="s2">&quot;height&quot;</span><span class="p">:</span><span class="mi">1024</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span><span class="mi">1024</span><span class="p">}</span> <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">cuda</span><span class="p">()])]))</span>
+        <span class="n">preds</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">y_tumor_new</span><span class="o">=</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">y_tumor_pred</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">alpha</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">follicle_pred</span><span class="p">[</span><span class="n">disk_mask</span><span class="o">==</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)]),</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">y_tumor_pred</span><span class="p">,</span> <span class="n">follicle_pred</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y_tumor</span><span class="p">[</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">],</span><span class="n">preds</span><span class="p">)]</span> 
+    <span class="n">y_benign</span><span class="o">=</span><span class="n">y_pred</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">y_benign</span><span class="p">[</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">]</span><span class="o">=</span><span class="n">y_benign</span><span class="p">[</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">]</span><span class="o">+</span><span class="n">y_pred</span><span class="p">[</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">y_tumor_new</span><span class="c1">#verify, add, update with inverse </span>
+    <span class="n">y_tumor</span><span class="p">[</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">]</span><span class="o">=</span><span class="n">y_tumor_new</span>
+    <span class="n">gnn_res</span><span class="p">[</span><span class="s1">&#39;y_pred_orig&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">y_pred</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">gnn_res</span><span class="p">[</span><span class="s1">&#39;y_pred&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">y_pred</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">gnn_res</span><span class="p">[</span><span class="s1">&#39;y_pred&#39;</span><span class="p">][:,</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">y_benign</span> 
+    <span class="n">gnn_res</span><span class="p">[</span><span class="s1">&#39;y_pred&#39;</span><span class="p">][:,</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">y_tumor</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">([</span><span class="n">gnn_res</span><span class="p">],</span><span class="n">out_fname</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="predict_hair_follicles"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.follicle_detection.predict_hair_follicles">[docs]</a><span class="k">def</span> <span class="nf">predict_hair_follicles</span><span class="p">(</span><span class="n">tumor_thres</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+            <span class="n">patch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">basename</span><span class="o">=</span><span class="s2">&quot;340_A1a_ASAP&quot;</span><span class="p">,</span>
+            <span class="n">alpha_scale</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="p">[</span><span class="mf">1.</span><span class="p">,</span><span class="mf">2.</span><span class="p">,</span><span class="mf">3.</span><span class="p">],</span>
+            <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;model_final.pth&quot;</span><span class="p">,</span>
+            <span class="n">model_dir</span><span class="o">=</span><span class="s2">&quot;./output&quot;</span><span class="p">,</span>
+            <span class="n">detectron_threshold</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span>
+            <span class="n">dirname</span><span class="o">=</span><span class="s2">&quot;../../bcc_test_set/&quot;</span><span class="p">,</span>
+            <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.tif&quot;</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict hair follicles in a given tumor image using a pre-trained GNN model.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - tumor_thres (float): Threshold value for the tumor prediction probability (default 0.3).</span>
+<span class="sd">    - patch_size (int): Size of the image patches used for prediction (default 256).</span>
+<span class="sd">    - basename (str): Name of the input image file without the extension (default &quot;340_A1a_ASAP&quot;).</span>
+<span class="sd">    - alpha_scale (float): Scaling factor for the alpha values used in GNN, reduces the tumor prediction probability (default 2.0).</span>
+<span class="sd">    - alpha (list): List of 3 alpha values used in GNN to reduce tumor probability in presence of follicles (default [1., 2., 3.]).</span>
+<span class="sd">    - model_path (str): Path to the pre-trained GNN model file (default &quot;model_final.pth&quot;).</span>
+<span class="sd">    - model_dir (str): Directory path to save the GNN model (default &quot;./output&quot;).</span>
+<span class="sd">    - detectron_threshold (float): Threshold value for object detection (default 0.55).</span>
+<span class="sd">    - dirname (str): Directory path to the input image file (default &quot;../../bcc_test_set/&quot;).</span>
+<span class="sd">    - ext (str): Extension of the input image file (default &quot;.tif&quot;).</span>
+<span class="sd">    - batch_size (int): Batch size used for prediction (default 16).</span>
+<span class="sd">    - num_workers (int): Number of worker processes for data loading (default 1).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    - None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">threshold</span><span class="o">=</span><span class="n">detectron_threshold</span>
+    <span class="n">base_model</span><span class="o">=</span><span class="s2">&quot;COCO-PanopticSegmentation/panoptic_fpn_R_101_3x.yaml&quot;</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;gnn_follicle_results&quot;</span><span class="p">),</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">get_cfg</span><span class="p">()</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">merge_from_file</span><span class="p">(</span><span class="n">model_zoo</span><span class="o">.</span><span class="n">get_config_file</span><span class="p">(</span><span class="n">base_model</span><span class="p">))</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">ROI_HEADS</span><span class="o">.</span><span class="n">NUM_CLASSES</span> <span class="o">=</span> <span class="n">n</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">SEM_SEG_HEAD</span><span class="o">.</span><span class="n">NUM_CLASSES</span> <span class="o">=</span> <span class="n">n</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">OUTPUT_DIR</span><span class="o">=</span><span class="n">model_dir</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">WEIGHTS</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">OUTPUT_DIR</span><span class="p">,</span> <span class="n">model_path</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">ROI_HEADS</span><span class="o">.</span><span class="n">SCORE_THRESH_TEST</span> <span class="o">=</span> <span class="n">threshold</span>
+
+    <span class="n">predictor</span> <span class="o">=</span> <span class="n">DefaultPredictor</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="n">alpha_scale</span>
+    <span class="n">d_patch</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">patch_size</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">disk_mask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1024</span><span class="p">,</span><span class="mi">1024</span><span class="p">))</span>
+    <span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="o">=</span><span class="n">disk</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span><span class="mi">512</span><span class="p">),</span><span class="mi">512</span><span class="p">)</span>
+    <span class="n">disk_mask</span><span class="p">[</span><span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+    <span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="o">=</span><span class="n">disk</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span><span class="mi">512</span><span class="p">),</span><span class="mi">256</span><span class="p">)</span>
+    <span class="n">disk_mask</span><span class="p">[</span><span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="p">]</span><span class="o">=</span><span class="mi">2</span>
+    <span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="o">=</span><span class="n">disk</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span><span class="mi">512</span><span class="p">),</span><span class="mi">128</span><span class="p">)</span>
+    <span class="n">disk_mask</span><span class="p">[</span><span class="n">xx</span><span class="p">,</span><span class="n">yy</span><span class="p">]</span><span class="o">=</span><span class="mi">3</span>
+
+    <span class="n">img_</span><span class="o">=</span><span class="n">load_image</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+
+    <span class="n">gnn_res_</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">)):</span>
+        <span class="n">patch_info</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;patches&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">))</span>
+        <span class="n">patches</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;patches&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">))[</span><span class="n">patch_info</span><span class="p">[</span><span class="s1">&#39;tumor_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+        <span class="n">patch_info</span><span class="o">=</span><span class="n">patch_info</span><span class="p">[</span><span class="n">patch_info</span><span class="p">[</span><span class="s1">&#39;tumor_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+
+        <span class="n">gnn_res</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;gnn_results&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2">_tumor_map.pkl&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y_pred</span><span class="o">=</span><span class="n">softmax</span><span class="p">(</span><span class="n">gnn_res</span><span class="p">[</span><span class="s1">&#39;y_pred&#39;</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">y_tumor</span><span class="o">=</span><span class="n">y_pred</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">patches_new</span><span class="o">=</span><span class="p">[</span><span class="n">check_update</span><span class="p">(</span><span class="n">img_</span><span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="n">d_patch</span><span class="o">-</span><span class="mi">512</span><span class="p">:</span><span class="n">x</span><span class="o">+</span><span class="n">d_patch</span><span class="o">+</span><span class="mi">512</span><span class="p">,</span><span class="n">y</span><span class="o">+</span><span class="n">d_patch</span><span class="o">-</span><span class="mi">512</span><span class="p">:</span><span class="n">y</span><span class="o">+</span><span class="n">d_patch</span><span class="o">+</span><span class="mi">512</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">patch_info</span><span class="p">[[</span><span class="s1">&#39;x_orig&#39;</span><span class="p">,</span><span class="s1">&#39;y_orig&#39;</span><span class="p">]][</span><span class="n">y_tumor</span><span class="o">&gt;</span><span class="n">tumor_thres</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">patches_new</span><span class="p">):</span> 
+            <span class="n">patches_new</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">patches_new</span><span class="p">)</span>
+            <span class="n">gnn_res_</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span><span class="o">=</span><span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">update_gnn_res</span><span class="p">)(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;gnn_follicle_results&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2">_tumor_map.pkl&quot;</span><span class="p">),</span><span class="n">gnn_res</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span><span class="n">patches_new</span><span class="p">,</span><span class="n">disk_mask</span><span class="p">,</span><span class="n">y_pred</span><span class="p">,</span><span class="n">y_tumor</span><span class="p">,</span><span class="n">tumor_thres</span><span class="p">,</span><span class="n">model</span><span class="p">,</span><span class="n">batch_size</span><span class="p">,</span><span class="n">num_workers</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gnn_res_</span><span class="p">[</span><span class="n">bn</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">gnn_res</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">ProgressBar</span><span class="p">():</span>
+        <span class="n">gnn_res_</span><span class="o">=</span><span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">gnn_res_</span><span class="p">,</span><span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;threading&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+        
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">fire</span><span class="o">.</span><span class="n">Fire</span><span class="p">(</span><span class="n">predict_hair_follicles</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Joshua Levy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

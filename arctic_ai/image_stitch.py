@@ -1,4 +1,6 @@
-"""Contains functions for stitching images together."""
+"""Image Writing 
+==========
+Contains functions for stitching images together."""
 import pandas as pd, numpy as np
 from scipy.ndimage import label as scilabel
 from skimage.measure import regionprops_table

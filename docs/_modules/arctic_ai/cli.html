@@ -65,7 +65,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for arctic_ai.cli</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Contains functions for creating command line interfaces.&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CLI </span>
+<span class="sd">==========</span>
+
+<span class="sd">Contains functions for creating command line interfaces.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">fire</span><span class="o">,</span> <span class="nn">os</span>
 
 <div class="viewcode-block" id="Commands"><a class="viewcode-back" href="../../index.html#arctic_ai.cli.Commands">[docs]</a><span class="k">class</span> <span class="nc">Commands</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -190,26 +195,34 @@
             <span class="n">create_graph_data</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="n">analysis_type</span><span class="p">,</span><span class="n">radius</span><span class="p">,</span><span class="n">min_component_size</span><span class="p">,</span><span class="n">no_component_break</span><span class="o">=</span><span class="n">no_component_break</span><span class="p">)</span>
         <span class="n">predict</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="n">analysis_type</span><span class="p">,</span><span class="n">gpu_id</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Commands.nuclei_predict"><a class="viewcode-back" href="../../index.html#arctic_ai.cli.Commands.nuclei_predict">[docs]</a>    <span class="k">def</span> <span class="nf">nuclei_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                   <span class="n">basename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;163_A1a&quot;</span><span class="p">,</span>
-                   <span class="n">gpu_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Predicts the location of nuclei in an image.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        basename : str, optional</span>
-<span class="sd">            The base filename of the image to be processed. Default is &quot;163_A1a&quot;.</span>
-<span class="sd">        gpu_id : int, optional</span>
-<span class="sd">            The ID of the GPU to use for prediction. Default is -1, which means that the CPU is used.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Removed temporarily, adding back soon&quot;</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">arctic_ai.nuclei_prediction</span> <span class="kn">import</span> <span class="n">predict_nuclei</span>
-        <span class="n">predict_nuclei</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="n">gpu_id</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Commands.nuclei_predict"><a class="viewcode-back" href="../../index.html#arctic_ai.cli.Commands.nuclei_predict">[docs]</a>    <span class="k">def</span> <span class="nf">nuclei_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                       <span class="n">predictor_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> 
+                       <span class="n">predictor_file</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> 
+                       <span class="n">patch_file</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> 
+                       <span class="n">threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> 
+                       <span class="n">savenpy</span><span class="o">=</span><span class="s1">&#39;pred.npy&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The nuclei_predict function takes in a set of arguments including predictor_dir, predictor_file, patch_file, threshold, and savenpy. It loads a model from the specified predictor_dir and predictor_file, runs it on a set of patches in patch_file, and saves the output predictions as an npy stack and label dictionary if savenpy is not None. If savexml is not None, it also saves predictions to an ASAP xml.</span>
+<span class="sd">        The function loads the model, flips the patches, runs the model on the patches, and saves the predictions in the specified formats if requested.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            predictor_dir (str): path to model folder</span>
+<span class="sd">            predictor_file (str): filename of model in the folder (don&#39;t include path to folder)</span>
+<span class="sd">            patch_file (str): path to an npy stack of patches</span>
+<span class="sd">            classifier_type (BasePredictor): class (from predict.py)</span>
+<span class="sd">            panoptic (bool): whether the model performs panoptic segmentation. If false, it is assumed to do instance segmentation.</span>
+<span class="sd">            n (int): number of classes the model classifies into </span>
+<span class="sd">            threshold (float): threshold to use for model </span>
+<span class="sd">            savenpy (str): Path to file to which to save npy output. The output is a numpy stack of the the masks for each patch. In the mask, nuclei are given a non-zero integer, the ID of the the instance it is a part of. A pickled dictionary mapping the instance ID to the class label is also outputted. If savenpy=None, predictions are not saved in an npy format. </span>
+<span class="sd">            savexml (str): Path to file to which to save xml output (ASAP format). If savexml=None, predictions are not saved in an xml format. </span>
+<span class="sd">            patch_coords (str): an extra pkl file which specifies the x,y (x is row, y is col) metadata for the patches. Must be provided if exporting to xml, since location is a part of the ASAP format</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># raise NotImplementedError(&quot;Removed temporarily, adding back soon&quot;)</span>
+        <span class="kn">from</span> <span class="nn">arctic_ai.detection_workflows.nuclei_cli</span> <span class="kn">import</span> <span class="n">detect_from_patches</span>
+        <span class="n">detect_from_patches</span><span class="p">(</span><span class="n">predictor_dir</span><span class="o">=</span><span class="n">predictor_dir</span><span class="p">,</span> 
+                       <span class="n">predictor_file</span><span class="o">=</span><span class="n">predictor_file</span><span class="p">,</span> 
+                       <span class="n">patch_file</span><span class="o">=</span><span class="n">patch_file</span><span class="p">,</span> 
+                       <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> 
+                       <span class="n">savenpy</span><span class="o">=</span><span class="n">savenpy</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">quality_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                       <span class="n">basename</span><span class="o">=</span><span class="s2">&quot;163_A1a&quot;</span><span class="p">):</span>

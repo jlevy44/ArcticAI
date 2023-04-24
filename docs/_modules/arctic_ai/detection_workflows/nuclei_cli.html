@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arctic_ai.detection_workflows.nuclei_cli &mdash; ArcticAI 0.3 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            ArcticAI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ArcticAI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arctic_ai.detection_workflows.nuclei_cli</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arctic_ai.detection_workflows.nuclei_cli</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Nuclei Detection  </span>
+<span class="sd">==========</span>
+
+<span class="sd">Example command:</span>
+
+<span class="sd">python cli.py detect_from_patches \</span>
+<span class="sd">--predictor_dir=. \</span>
+<span class="sd">--predictor_file=./ArcticAI_Detection/output_a=0_128_more_gr_pretrained_d2s/model_final.pth \</span>
+<span class="sd">--patch_file=./ArcticAI_Detection/ex4/spline/patches/131_B1e.npy \</span>
+<span class="sd">--threshold=0.05</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">fire</span>
+
+<span class="c1"># local</span>
+<span class="kn">from</span> <span class="nn">.predict_detection</span> <span class="kn">import</span> <span class="n">load_predictor</span><span class="p">,</span> <span class="n">PanopticNucleiPredictor</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">com</span>
+
+<span class="c1">#1. Iterate through patches </span>
+<span class="c1">#2. Run model on patches</span>
+<span class="c1">#3. Save Results in XML</span>
+
+<span class="c1">#cv2.findContours gives lists of [col,row] points</span>
+
+<div class="viewcode-block" id="extract_nuclei_patch"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.extract_nuclei_patch">[docs]</a><span class="k">def</span> <span class="nf">extract_nuclei_patch</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get a subsection of the image with nuclei at the center</span>
+<span class="sd">    Args:</span>
+<span class="sd">        image: the whole slide image</span>
+<span class="sd">        mask: nuclei mask </span>
+<span class="sd">        coord: position if the form (row, column) of the top left corner of the mask in the image</span>
+<span class="sd">        size: size of the patch to extract (size x size)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">xmean</span><span class="p">,</span><span class="n">ymean</span> <span class="o">=</span> <span class="n">com</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="c1"># column, row</span>
+    <span class="n">xmean</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">xmean</span><span class="p">)</span>
+    <span class="n">ymean</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ymean</span><span class="p">)</span>
+    
+    <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ymean</span> <span class="o">-</span> <span class="n">size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">xmean</span> <span class="o">-</span> <span class="n">size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ymean</span> <span class="o">+</span> <span class="n">size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">xmean</span> <span class="o">+</span> <span class="n">size</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">box</span><span class="p">]</span>
+    <span class="n">patch</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">:]</span>
+    <span class="k">return</span> <span class="n">patch</span></div>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">patches</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns a list of tuples. Tuples are of the form (masks for patch, associated labels for patch)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        predictor: model</span>
+<span class="sd">        patches: must be BGR</span>
+<span class="sd">        duplicate: if set to False, removes duplication</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">mp</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">patches</span><span class="p">):</span>
+        <span class="n">masks</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">mp</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">masks</span><span class="p">,</span> <span class="n">labels</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="run_for_patch_with_cnn"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.run_for_patch_with_cnn">[docs]</a><span class="k">def</span> <span class="nf">run_for_patch_with_cnn</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">cnn</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">duplicate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="c1"># coord and size define the patch</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        predictor: model</span>
+<span class="sd">        cnn: class predictor</span>
+<span class="sd">        image: whole slide image</span>
+<span class="sd">        coord: (row, col) of the top left corner of the patch </span>
+<span class="sd">        size: size of patches to pass through predictor</span>
+<span class="sd">        duplicate: if set to False, removes duplication</span>
+<span class="sd">        </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">row</span><span class="p">,</span><span class="n">col</span> <span class="o">=</span> <span class="n">coord</span>
+    <span class="n">patch</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">row</span><span class="p">:</span><span class="n">row</span><span class="o">+</span><span class="n">size</span><span class="p">,</span><span class="n">col</span><span class="p">:</span><span class="n">col</span><span class="o">+</span><span class="n">size</span><span class="p">]</span>
+    <span class="n">patch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># makes it BGR</span>
+    <span class="n">mp</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]</span>
+    <span class="n">masks</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_labels</span> <span class="o">=</span> <span class="n">predictor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
+    <span class="n">good_masks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">duplicate</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">masks</span><span class="p">,</span> <span class="n">_labels</span> <span class="o">=</span> <span class="n">remove_duplicates</span><span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">_labels</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span> 
+            <span class="n">int_lbl</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">extract_nuclei_patch</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">cnn</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+            <span class="n">good_masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="p">[</span><span class="n">int_lbl</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;bad output&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">good_masks</span><span class="p">,</span> <span class="n">labels</span></div>
+        
+<span class="k">def</span> <span class="nf">run_with_cnn</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">cnn</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;here&quot;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_for_patch_with_cnn</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">cnn</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+        
+<span class="k">def</span> <span class="nf">export_npy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">savenpy</span><span class="o">=</span><span class="s1">&#39;pred.npy&#39;</span><span class="p">):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">all_masks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">detection_info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">masks</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">all_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">mask</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+                <span class="n">all_mask</span><span class="p">[</span><span class="n">mask</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span>
+                <span class="n">detection_info</span><span class="p">[</span><span class="n">num</span><span class="p">]</span> <span class="o">=</span> <span class="n">label</span>
+                <span class="n">num</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">all_masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_mask</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">savenpy</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">all_masks</span><span class="p">))</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">detection_info</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">savenpy</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+    <span class="c1"># save the all</span>
+
+<span class="k">def</span> <span class="nf">export_xml</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">savexml</span><span class="o">=</span><span class="s1">&#39;out.xml&#39;</span><span class="p">):</span>
+    <span class="n">c</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;ASAP_Annotations&#39;</span><span class="p">)</span>
+    <span class="n">annotations</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="s2">&quot;Annotations&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">coord</span><span class="p">,</span> <span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">coord</span>
+        <span class="k">for</span> <span class="n">mask</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+            <span class="n">annotation</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">annotations</span><span class="p">,</span> <span class="s2">&quot;Annotation&quot;</span><span class="p">)</span>
+            <span class="n">annotation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Annotation </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">;</span> <span class="n">c</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">annotation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Polygon&quot;</span>
+            <span class="n">annotation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;PartOfGroup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="n">annotation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#F4FA58&quot;</span>
+
+            <span class="n">contours</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findContours</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">RETR_TREE</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CHAIN_APPROX_SIMPLE</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contours</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">ind</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contours</span><span class="p">)):</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">contours</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">contours</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> 
+                        <span class="n">ind</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">contour</span> <span class="o">=</span> <span class="n">contours</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+                <span class="k">assert</span><span class="p">(</span><span class="n">contour</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span>
+
+                <span class="n">contour</span> <span class="o">=</span> <span class="n">contour</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">annotation</span><span class="p">,</span> <span class="s2">&quot;Coordinates&quot;</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">contour</span><span class="p">):</span>
+                    <span class="n">coord</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s2">&quot;Coordinate&quot;</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">col</span> <span class="o">+</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">x</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="c1"># Next loop is only for the last point</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">contour</span><span class="p">):</span>
+                    <span class="n">coord</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s2">&quot;Coordinate&quot;</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Order&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">col</span> <span class="o">+</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">break</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">annotations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bad output:&quot;</span><span class="p">,</span> <span class="n">contours</span><span class="p">)</span>
+
+    <span class="n">anngroups</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="s2">&quot;AnnotationGroups&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">anngroups</span><span class="p">,</span> <span class="s2">&quot;Group&quot;</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;PartOfGroup&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;None&quot;</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="s2">&quot;Attributes&quot;</span><span class="p">)</span>
+
+    <span class="n">save_xml</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">savexml</span><span class="p">)</span>
+
+<div class="viewcode-block" id="prettify"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.prettify">[docs]</a><span class="k">def</span> <span class="nf">prettify</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a pretty-printed XML string for the Element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rough_string</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">reparsed</span> <span class="o">=</span> <span class="n">minidom</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">rough_string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reparsed</span><span class="o">.</span><span class="n">toprettyxml</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="s2">&quot;  &quot;</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">save_xml</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">prettify</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+
+<div class="viewcode-block" id="detect_from_patches"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.detect_from_patches">[docs]</a><span class="k">def</span> <span class="nf">detect_from_patches</span><span class="p">(</span><span class="n">predictor_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">predictor_file</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">patch_file</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">classifier_type</span><span class="o">=</span><span class="n">PanopticNucleiPredictor</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">savenpy</span><span class="o">=</span><span class="s1">&#39;pred.npy&#39;</span><span class="p">,</span> <span class="n">savexml</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patch_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        predictor_dir (str): path to model folder</span>
+<span class="sd">        predictor_file (str): filename of model in the folder (don&#39;t include path to folder)</span>
+<span class="sd">        patch_file (str): path to an npy stack of patches</span>
+<span class="sd">        classifier_type (BasePredictor): class (from predict.py)</span>
+<span class="sd">        panoptic (bool): whether the model performs panoptic segmentation. If false, it is assumed to do instance segmentation.</span>
+<span class="sd">        n (int): number of classes the model classifies into </span>
+<span class="sd">        threshold (float): threshold to use for model </span>
+<span class="sd">        savenpy (str): Path to file to which to save npy output. The output is a numpy stack of the the masks for each patch. In the mask, nuclei are given a non-zero integer, the ID of the the instance it is a part of. A pickled dictionary mapping the instance ID to the class label is also outputted. If savenpy=None, predictions are not saved in an npy format. </span>
+<span class="sd">        savexml (str): Path to file to which to save xml output (ASAP format). If savexml=None, predictions are not saved in an xml format. </span>
+<span class="sd">        patch_coords (str): an extra pkl file which specifies the x,y (x is row, y is col) metadata for the patches. Must be provided if exporting to xml, since location is a part of the ASAP format</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading files...&quot;</span><span class="p">)</span>
+
+    <span class="n">predictor</span> <span class="o">=</span> <span class="n">load_predictor</span><span class="p">(</span><span class="n">classifier_type</span><span class="p">,</span> <span class="n">predictor_dir</span><span class="p">,</span> <span class="n">predictor_file</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">patch_file</span><span class="p">)</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running model...&quot;</span><span class="p">)</span>
+    
+    <span class="n">out</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">patches</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">savenpy</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving predictions to an npy stack and label dictionary...&quot;</span><span class="p">)</span>
+        <span class="n">export_npy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">savenpy</span><span class="o">=</span><span class="n">savenpy</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">savexml</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Saving predictions to an ASAP xml...&quot;</span><span class="p">)</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">patch_coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># must give coordinates to </span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">patch_coords</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">export_xml</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">predictor</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;groups&#39;</span><span class="p">],</span> <span class="n">predictor</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">],</span> <span class="n">savexml</span><span class="o">=</span><span class="n">savexml</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">image</span><span class="p">[</span><span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">+</span><span class="n">size</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">y</span><span class="o">+</span><span class="n">size</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">coords</span><span class="p">)])</span> <span class="c1"># x is really row, y is really col</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">patches</span>
+
+<span class="k">def</span> <span class="nf">detect_from_wsi</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">patches</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<span class="k">def</span> <span class="nf">get_expanded_dataset_slide</span><span class="p">(</span><span class="n">slide</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">pathpretrain.utils</span> <span class="kn">import</span> <span class="n">load_image</span>
+    <span class="k">return</span> <span class="n">load_image</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="s2">&quot;/dartfs/rc/nosnapshots/V/VaickusL-nb/EDIT_Students/projects/arctic_nuclei/arctic_WSI_dataset_expanded/inputs/&quot;</span><span class="p">,</span>
+            <span class="n">slide</span><span class="o">+</span><span class="s2">&quot;.npy&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="get_diverse_patches"><a class="viewcode-back" href="../../../index.html#arctic_ai.detection_workflows.nuclei_cli.get_diverse_patches">[docs]</a><span class="k">def</span> <span class="nf">get_diverse_patches</span><span class="p">(</span><span class="n">slide</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    get benign, inflammatory, and bcc patch for a slide</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/dartfs/rc/nosnapshots/V/VaickusL-nb/EDIT_Students/projects/arctic_nuclei/arctic_WSI_dataset_expanded/tumor_annot_gnn_annot.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">slide</span><span class="p">]</span>
+    <span class="n">benign</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;annotation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;benign&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;inflammation&#39;</span><span class="p">]</span> <span class="o">&lt;</span><span class="n">thresh</span><span class="p">)]</span>
+    <span class="n">bcc</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;annotation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;bcc&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;inflammation&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">)]</span>
+    <span class="n">inflammatory</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;inflammation&#39;</span><span class="p">]</span> <span class="o">&gt;</span><span class="n">thresh</span><span class="p">]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">benign</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No benign patches on this slide. Skipping...&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">benign</span><span class="o">.</span><span class="n">sample</span><span class="p">()[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">))))</span> <span class="c1"># col</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bcc</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No bcc patches on this slide. Skipping...&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">bcc</span><span class="o">.</span><span class="n">sample</span><span class="p">()[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">))))</span> <span class="c1"># col</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inflammatory</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No inflammatory patches on this slide. Skipping...&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">inflammatory</span><span class="o">.</span><span class="n">sample</span><span class="p">()[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">256</span><span class="p">,</span> <span class="n">size</span><span class="p">))))</span> <span class="c1"># col</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+<span class="k">def</span> <span class="nf">make_expanded_dataset_xml</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">slide</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">cnn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading image...&quot;</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">get_expanded_dataset_slide</span><span class="p">(</span><span class="n">slide</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running model...&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cnn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">patches</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">run_with_cnn</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">cnn</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">savexml</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;../model_xmls/&quot;</span><span class="p">,</span> <span class="n">slide</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">date</span> <span class="o">+</span> <span class="s1">&#39;_thresh_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">ROI_HEADS</span><span class="o">.</span><span class="n">SCORE_THRESH_TEST</span><span class="p">)[</span><span class="mi">2</span><span class="p">:])</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">savexml</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">.xml&quot;</span><span class="p">)):</span>
+        <span class="n">num</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">savexml</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">savexml</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">.xml&quot;</span>
+    <span class="n">export_xml</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">predictor</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;groups&#39;</span><span class="p">],</span> <span class="n">predictor</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">],</span> 
+            <span class="n">savexml</span><span class="o">=</span><span class="n">savexml</span><span class="p">)</span>
+         
+    
+<span class="k">def</span> <span class="nf">make_xmls_files</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span> <span class="c1"># surgeon-defined files containing boxes of interest</span>
+    <span class="n">slides</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">boxes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">slide</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">new_boxes</span> <span class="o">=</span> <span class="n">get_boxes</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">new_box</span> <span class="ow">in</span> <span class="n">new_boxes</span><span class="p">:</span>
+            <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_box</span><span class="p">)</span>
+            <span class="n">slides</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slide</span><span class="p">)</span>
+    <span class="n">make_xmls_box</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">slides</span><span class="p">,</span> <span class="n">boxes</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">make_xmls_box</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">slide_list</span><span class="p">,</span> <span class="n">box_list</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">cnn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   
+    <span class="c1"># uses a box to generate the xml (slide_list and box_list)</span>
+    <span class="c1"># currently only for the expanded dataset (should change)</span>
+    <span class="k">for</span> <span class="n">slide</span><span class="p">,</span> <span class="n">box</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">slide_list</span><span class="p">,</span> <span class="n">box_list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;On slide:&quot;</span><span class="p">,</span> <span class="n">slide</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;On box:&quot;</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">size</span><span class="p">))))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="s2">&quot; total patches will be processed&quot;</span><span class="p">)</span>
+        <span class="n">make_expanded_dataset_xml</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">slide</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">cnn</span><span class="o">=</span><span class="n">cnn</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_boxes</span><span class="p">(</span><span class="n">xmlpath</span><span class="p">):</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">xmlpath</span><span class="p">))</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+    <span class="n">boxes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">annotation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">annotation</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">==</span>  <span class="s2">&quot;Rectangle&quot;</span><span class="p">):</span>
+            <span class="n">minx</span><span class="p">,</span> <span class="n">miny</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">annotation</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coordinate</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">coordinate</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">])</span>
+                <span class="n">minx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                <span class="n">miny</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">miny</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                <span class="n">maxx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxx</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                <span class="n">maxy</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxy</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">miny</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">minx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxy</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxx</span><span class="p">)]</span>
+            <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">boxes</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">fire</span><span class="o">.</span><span class="n">Fire</span><span class="p">({</span>
+        <span class="s1">&#39;detect_from_patches&#39;</span><span class="p">:</span> <span class="n">detect_from_patches</span>
+    <span class="p">})</span>
+   
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Joshua Levy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

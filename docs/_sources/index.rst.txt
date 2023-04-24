@@ -20,6 +20,18 @@ Welcome to ArcticAI's documentation!
 .. automodule:: arctic_ai.image_stitch
     :members:
 
+.. automodule:: arctic_ai.model_3d
+    :members:
+
+.. automodule:: arctic_ai.tumor_map
+    :members:
+
+.. automodule:: arctic_ai.workflow
+    :members:
+
+.. automodule:: arctic_ai.scale_workflow
+    :members:
+
 .. automodule:: arctic_ai.utils
     :members:
 

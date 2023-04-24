@@ -1,3 +1,9 @@
+"""
+Ink Detection 
+==========
+
+Detect inks for tissue orientation.
+"""
 from skimage import morphology as morph
 from scipy.ndimage import binary_opening, binary_dilation, label as scilabel
 from skimage import filters, measure

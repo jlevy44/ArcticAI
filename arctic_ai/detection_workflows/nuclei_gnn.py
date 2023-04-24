@@ -1,3 +1,7 @@
+"""Nuclei GNN
+==========
+Functions to support cell-graph neural network inference. Cell level CNN embedding code is being refactored and will be added.
+"""
 import sys, os
 from sklearn.preprocessing import LabelEncoder
 import numpy as np

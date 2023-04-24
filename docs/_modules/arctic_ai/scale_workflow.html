@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arctic_ai.scale_workflow &mdash; ArcticAI 0.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ArcticAI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ArcticAI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arctic_ai.scale_workflow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arctic_ai.scale_workflow</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Parallel Workflow </span>
+<span class="sd">==========</span>
+<span class="sd">Contains functions for parallel processing of tissue sections.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">toil.job</span> <span class="kn">import</span> <span class="n">Job</span>
+<span class="kn">import</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">fire</span>
+
+<span class="k">def</span> <span class="nf">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">generate_output_file_names</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
+    <span class="n">out_files</span><span class="o">=</span><span class="nb">dict</span><span class="p">()</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;masks/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.npy&quot;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]]</span><span class="o">+</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;patches/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.npy&quot;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span><span class="s1">&#39;tumor&#39;</span><span class="p">]:</span>
+        <span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;cnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;cnn_embeddings/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">]</span>
+        <span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;gnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;gnn_results/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;graph_datasets/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;quality&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;quality_scores/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;ink&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;detected_inks/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_thumbnail.npy&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;nuclei&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;nuclei_results/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out_files</span>
+
+<span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai preprocess --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --threshold 0.05 --patch_size 256 --ext </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --compression </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;compression&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;Preprocessed {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai cnn_predict --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --analysis_type </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;analysis_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --gpu_id -1&quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;Embed CNN {job_dict[&#39;analysis_type&#39;]} {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">gnn_predict</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai gnn_predict --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --analysis_type </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;analysis_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --radius 256 --min_component_size 600 --gpu_id -1 --generate_graph True&quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;GNN Predict {job_dict[&#39;analysis_type&#39;]} {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">gen_quality_scores</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai quality_score --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;Quality {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">ink_detect</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai ink_detect --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --compression 8 --ext </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;Ink {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">stitch_images</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;50G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">command</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;cd </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> arctic_ai ink_detect --basename </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> --compression 8 --ext </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="c1"># print(command)</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">result</span><span class="c1">#f&quot;Ink {job_dict[&#39;basename&#39;]}&quot;</span>
+
+<span class="k">def</span> <span class="nf">deploy_patient</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;2G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;1M&quot;</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">])</span>
+    <span class="n">out_files</span><span class="o">=</span><span class="n">generate_output_file_names</span><span class="p">(</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">])</span>
+    
+    <span class="n">jobs</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">preprocess_job</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">addChildJobFn</span><span class="p">(</span><span class="n">preprocess</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">disk</span><span class="p">)</span>
+    <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">preprocess_job</span>
+    
+    <span class="n">embed_jobs</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">gnn_predict_jobs</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]:</span>
+        <span class="n">job_dict_k</span><span class="o">=</span><span class="n">job_dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">job_dict_k</span><span class="p">[</span><span class="s1">&#39;analysis_type&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">k</span>
+        <span class="n">embed_jobs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">addChildJobFn</span><span class="p">(</span><span class="n">embed</span><span class="p">,</span> <span class="n">job_dict_k</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">disk</span><span class="p">)</span>
+        <span class="n">gnn_predict_jobs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">addChildJobFn</span><span class="p">(</span><span class="n">gnn_predict</span><span class="p">,</span> <span class="n">job_dict_k</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">disk</span><span class="p">)</span>
+        <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">embed_jobs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">embed_jobs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">gnn_predict_jobs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+    <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;embed&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">embed_jobs</span>
+    <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;gnn&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">gnn_predict_jobs</span>
+    <span class="c1"># quality_job=job.addChildJobFn(gen_quality_scores, job_dict, memory, cores, disk)</span>
+    <span class="c1"># for k in [&#39;tumor&#39;,&#39;macro&#39;]:</span>
+    <span class="c1">#     gnn_predict_jobs[k].addChild(quality_job)</span>
+    <span class="n">ink_job</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">addChildJobFn</span><span class="p">(</span><span class="n">ink_detect</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">disk</span><span class="p">)</span>
+    <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">ink_job</span><span class="p">)</span>
+    <span class="n">jobs</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">nuclei_job</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;basename&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="k">def</span> <span class="nf">setup_deploy</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;2G&quot;</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;3G&quot;</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">])</span>
+    <span class="n">jobs</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;input_dir&#39;</span><span class="p">],</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;patient&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)):</span>
+        <span class="c1"># print(f)</span>
+        <span class="n">basename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">],</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">job_dict_f</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">basename</span><span class="p">,</span> 
+                        <span class="n">compression</span><span class="o">=</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;compression&#39;</span><span class="p">],</span> 
+                        <span class="n">overwrite</span><span class="o">=</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;overwrite&#39;</span><span class="p">],</span> 
+                        <span class="n">ext</span><span class="o">=</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">],</span>
+                        <span class="n">job_dir</span><span class="o">=</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;job_dir&#39;</span><span class="p">],</span>
+                        <span class="n">singularity_preamble</span><span class="o">=</span><span class="n">job_dict</span><span class="p">[</span><span class="s1">&#39;singularity_preamble&#39;</span><span class="p">])</span>
+        <span class="n">patient_job</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">addChildJobFn</span><span class="p">(</span><span class="n">deploy_patient</span><span class="p">,</span> <span class="n">job_dict_f</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">disk</span><span class="p">)</span>
+        <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">patient_job</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">patient_job</span><span class="o">.</span><span class="n">rv</span><span class="p">()</span> <span class="k">for</span> <span class="n">patient_job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">]</span>
+                    
+
+<div class="viewcode-block" id="run_parallel"><a class="viewcode-back" href="../../index.html#arctic_ai.scale_workflow.run_parallel">[docs]</a><span class="k">def</span> <span class="nf">run_parallel</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+               <span class="n">input_dir</span><span class="o">=</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span>
+               <span class="n">scheme</span><span class="o">=</span><span class="s2">&quot;2/1&quot;</span><span class="p">,</span>
+               <span class="n">compression</span><span class="o">=</span><span class="mf">6.</span><span class="p">,</span>
+               <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+               <span class="n">record_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">extract_dzi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.tif&quot;</span><span class="p">,</span>
+               <span class="n">job_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span>
+               <span class="n">restart</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">logfile</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+               <span class="n">loglevel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+               <span class="n">cuda_visible_devices</span><span class="o">=</span><span class="s2">&quot;$CUDA_VISIBLE_DEVICES&quot;</span><span class="p">,</span>
+               <span class="n">singularity_img_path</span><span class="o">=</span><span class="s2">&quot;arcticai.img&quot;</span><span class="p">,</span>
+               <span class="n">run_slurm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">cores</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">memory</span><span class="o">=</span><span class="s2">&quot;60G&quot;</span><span class="p">,</span>
+               <span class="n">disk</span><span class="o">=</span><span class="s2">&quot;3G&quot;</span><span class="p">,</span>
+               <span class="n">cuda_device</span><span class="o">=</span><span class="s2">&quot;$(($RANDOM % 4))&quot;</span><span class="p">,</span>
+               <span class="n">prepend_path</span><span class="o">=</span><span class="s2">&quot;$(realpath ~)/.local/bin/&quot;</span><span class="p">,</span>
+               <span class="n">slurm_gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">slurm_account</span><span class="o">=</span><span class="s2">&quot;qdp-alpha&quot;</span><span class="p">,</span>
+               <span class="n">slurm_partition</span><span class="o">=</span><span class="s2">&quot;v100_12&quot;</span><span class="p">,</span>
+               <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+               <span class="n">gpu_cmode</span><span class="o">=</span><span class="s2">&quot;exclusive&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs the image processing workflow in parallel across multiple tissue sections simultaneously.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    patient : str, optional</span>
+<span class="sd">        The patient identifier. Default is an empty string.</span>
+<span class="sd">    input_dir : str, optional</span>
+<span class="sd">        The directory containing the input images. Default is &#39;inputs&#39;.</span>
+<span class="sd">    scheme : str, optional</span>
+<span class="sd">        The grid scheme used for image processing. Default is &#39;2/1&#39;.</span>
+<span class="sd">    compression : float, optional</span>
+<span class="sd">        The compression level for the output images. Default is 6.0.</span>
+<span class="sd">    overwrite : bool, optional</span>
+<span class="sd">        Whether or not to overwrite existing output files. Default is True.</span>
+<span class="sd">    record_time : bool, optional</span>
+<span class="sd">        Whether or not to record the processing time for each image. Default is False.</span>
+<span class="sd">    extract_dzi : bool, optional</span>
+<span class="sd">        Whether or not to extract deep zoom images. Default is False.</span>
+<span class="sd">    ext : str, optional</span>
+<span class="sd">        The file extension for input images. Default is &#39;.tif&#39;.</span>
+<span class="sd">    job_dir : str, optional</span>
+<span class="sd">        The directory for job management. Default is &#39;./&#39;.</span>
+<span class="sd">    restart : bool, optional</span>
+<span class="sd">        Whether or not to restart a previous job. Default is False.</span>
+<span class="sd">    logfile : str, optional</span>
+<span class="sd">        The path to the log file. Default is an empty string.</span>
+<span class="sd">    loglevel : str, optional</span>
+<span class="sd">        The level of verbosity for logging. Default is an empty string.</span>
+<span class="sd">    cuda_visible_devices : str, optional</span>
+<span class="sd">        The value for the CUDA_VISIBLE_DEVICES environment variable. Default is &#39;$CUDA_VISIBLE_DEVICES&#39;.</span>
+<span class="sd">    singularity_img_path : str, optional</span>
+<span class="sd">        The path to the Singularity image file. Default is &#39;arcticai.img&#39;.</span>
+<span class="sd">    run_slurm : bool, optional</span>
+<span class="sd">        Whether or not to run the job using the Slurm scheduler. Default is False.</span>
+<span class="sd">    cores : int, optional</span>
+<span class="sd">        The number of CPU cores to use. Default is 2.</span>
+<span class="sd">    memory : str, optional</span>
+<span class="sd">        The amount of memory to allocate for each job. Default is &#39;60G&#39;.</span>
+<span class="sd">    disk : str, optional</span>
+<span class="sd">        The amount of disk space to allocate for each job. Default is &#39;3G&#39;.</span>
+<span class="sd">    cuda_device : str, optional</span>
+<span class="sd">        The value for the CUDA device ID. Default is &#39;$(($RANDOM % 4))&#39;.</span>
+<span class="sd">    prepend_path : str, optional</span>
+<span class="sd">        The value for the PREPEND_PATH environment variable. Default is &#39;$(realpath ~)/.local/bin/&#39;.</span>
+<span class="sd">    slurm_gpus : int, optional</span>
+<span class="sd">        The number of GPUs to allocate when running the job on a Slurm cluster. Default is 1.</span>
+<span class="sd">    slurm_account : str, optional</span>
+<span class="sd">        The name of the Slurm account to use. Default is &#39;qdp-alpha&#39;.</span>
+<span class="sd">    slurm_partition : str, optional</span>
+<span class="sd">        The name of the Slurm partition to use. Default is &#39;v100_12&#39;.</span>
+<span class="sd">    time : int, optional</span>
+<span class="sd">        The maximum amount of time to allocate for the job, in hours. Default is 1.</span>
+<span class="sd">    gpu_cmode : str, optional</span>
+<span class="sd">        Slurm option that controls GPU sharing mode between multiple users. Default is exclusive though can be toggled to shared</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">singularity_preamble</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;source ~/.bashrc &amp;&amp; export SINGULARITYENV_CUDA_VISIBLE_DEVICES=</span><span class="si">{</span><span class="n">cuda_visible_devices</span><span class="si">}</span><span class="s2"> &amp;&amp; export SINGULARITYENV_PREPEND_PATH=</span><span class="si">{</span><span class="n">prepend_path</span><span class="si">}</span><span class="s2"> &amp;&amp; singularity  exec --nv -B $(pwd)  -B /scratch/  --bind $</span><span class="si">{</span><span class="n">HOME</span><span class="si">}</span><span class="s2">:/mnt  </span><span class="si">{</span><span class="n">singularity_img_path</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">slurm_args</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;--export=ALL --gres=gpu:</span><span class="si">{</span><span class="n">slurm_gpus</span><span class="si">}</span><span class="s2"> --account=</span><span class="si">{</span><span class="n">slurm_account</span><span class="si">}</span><span class="s2"> --partition=</span><span class="si">{</span><span class="n">slurm_partition</span><span class="si">}</span><span class="s2"> --nodes=1 --ntasks-per-node=1 --time=</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">:00:00 &quot;</span>
+    <span class="k">if</span> <span class="n">gpu_cmode</span><span class="o">==</span><span class="s2">&quot;shared&quot;</span><span class="p">:</span>
+        <span class="n">slurm_args</span><span class="o">+=</span><span class="s2">&quot;--gpu_cmode=shared&quot;</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">Job</span><span class="o">.</span><span class="n">Runner</span><span class="o">.</span><span class="n">getDefaultOptions</span><span class="p">(</span><span class="s2">&quot;./toilWorkflowRun&quot;</span><span class="p">)</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">restart</span><span class="o">=</span><span class="n">restart</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">defaultCores</span><span class="o">=</span><span class="n">cores</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">defaultMemory</span><span class="o">=</span><span class="n">memory</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">defaultDisk</span><span class="o">=</span><span class="n">disk</span>
+    <span class="n">options</span><span class="o">.</span><span class="n">clean</span> <span class="o">=</span> <span class="s2">&quot;always&quot;</span>
+    <span class="k">if</span> <span class="n">run_slurm</span><span class="p">:</span> 
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TOIL_SLURM_ARGS&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">slurm_args</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">batchSystem</span><span class="o">=</span><span class="s2">&quot;slurm&quot;</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">disableCaching</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">statePollingWait</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">maxLocalJobs</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">targetTime</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">singularity_preamble</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;export CUDA_VISIBLE_DEVICES=</span><span class="si">{</span><span class="n">cuda_device</span><span class="si">}</span><span class="s2"> &amp;&amp;&quot;</span><span class="o">+</span><span class="n">singularity_preamble</span>
+    <span class="k">if</span> <span class="n">loglevel</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">logLevel</span><span class="o">=</span><span class="n">loglevel</span>
+    <span class="k">if</span> <span class="n">logfile</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">logFile</span><span class="o">=</span><span class="n">logfile</span>
+    <span class="n">job_dict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="n">patient</span><span class="p">,</span>
+               <span class="n">input_dir</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
+               <span class="n">scheme</span><span class="o">=</span><span class="n">scheme</span><span class="p">,</span>
+               <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span>
+               <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+               <span class="n">record_time</span><span class="o">=</span><span class="n">record_time</span><span class="p">,</span>
+               <span class="n">extract_dzi</span><span class="o">=</span><span class="n">extract_dzi</span><span class="p">,</span>
+               <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span>
+               <span class="n">job_dir</span><span class="o">=</span><span class="n">job_dir</span><span class="p">,</span>
+               <span class="n">singularity_preamble</span><span class="o">=</span><span class="n">singularity_preamble</span><span class="p">)</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">Job</span><span class="o">.</span><span class="n">wrapJobFn</span><span class="p">(</span><span class="n">setup_deploy</span><span class="p">,</span> <span class="n">job_dict</span><span class="p">)</span>
+    <span class="n">rv</span> <span class="o">=</span> <span class="n">Job</span><span class="o">.</span><span class="n">Runner</span><span class="o">.</span><span class="n">startToil</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span></div>
+
+<span class="c1"># if __name__==&quot;__main__&quot;:</span>
+<span class="c1">#     fire.Fire(run_parallel)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Joshua Levy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

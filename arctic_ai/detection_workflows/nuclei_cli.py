@@ -1,4 +1,7 @@
 '''
+Nuclei Detection  
+==========
+
 Example command:
 
 python cli.py detect_from_patches \
@@ -20,7 +23,7 @@ import os
 import fire
 
 # local
-from .predict_detection import load_predictor
+from .predict_detection import load_predictor, PanopticNucleiPredictor
 from .utils import com
 
 #1. Iterate through patches 
@@ -189,7 +192,7 @@ def save_xml(top, filename):
     with open(filename, "w") as f:
         f.write(xml)
 
-def detect_from_patches(predictor_dir, predictor_file, patch_file, classifier_type=PanopticNucleiPredictor, threshold=0.05, savenpy='pred.npy', savexml=None, patch_coords=None): 
+def detect_from_patches(predictor_dir="./", predictor_file="", patch_file="", classifier_type=PanopticNucleiPredictor, threshold=0.05, savenpy='pred.npy', savexml=None, patch_coords=None): 
     '''
     Args:
         predictor_dir (str): path to model folder

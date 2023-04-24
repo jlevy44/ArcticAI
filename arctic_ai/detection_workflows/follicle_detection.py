@@ -1,4 +1,8 @@
-"""Contains functions for detecting follicles in images."""
+"""
+Follicle Detection  
+==========
+Contains functions for detecting follicles in images.
+"""
 
 from skimage.draw import disk
 from PIL import Image

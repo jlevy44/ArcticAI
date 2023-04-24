@@ -1,3 +1,6 @@
+"""Parallel Workflow 
+==========
+Contains functions for parallel processing of tissue sections."""
 from toil.job import Job
 import subprocess, os
 import glob

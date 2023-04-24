@@ -65,7 +65,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for arctic_ai.cnn_prediction</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Contains functions related to generating embeddings for image patches using a convolutional neural network&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CNN </span>
+<span class="sd">==========</span>
+
+<span class="sd">Contains functions related to generating embeddings for image patches using a convolutional neural network</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">torch</span><span class="o">,</span> <span class="nn">tqdm</span><span class="o">,</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span><span class="o">,</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>

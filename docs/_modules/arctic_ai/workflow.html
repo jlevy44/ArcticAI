@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arctic_ai.workflow &mdash; ArcticAI 0.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ArcticAI
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ArcticAI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arctic_ai.workflow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arctic_ai.workflow</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Serial Workflow </span>
+<span class="sd">==========</span>
+<span class="sd">Contains functions for serial processing of tissue sections. </span>
+<span class="sd">Contains functions for defining and running workflows.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">.preprocessing</span> <span class="kn">import</span> <span class="n">preprocess</span>
+<span class="kn">from</span> <span class="nn">.cnn_prediction</span> <span class="kn">import</span> <span class="n">generate_embeddings</span>
+<span class="kn">from</span> <span class="nn">.generate_graph</span> <span class="kn">import</span> <span class="n">create_graph_data</span>
+<span class="kn">from</span> <span class="nn">.gnn_prediction</span> <span class="kn">import</span> <span class="n">predict</span>
+<span class="c1"># from .quality_scores import generate_quality_scores</span>
+<span class="kn">from</span> <span class="nn">.ink_detection</span> <span class="kn">import</span> <span class="n">detect_inks</span>
+<span class="c1">#from .compile_results import dump_results</span>
+<span class="c1">#from .nuclei_detection import predict_nuclei</span>
+<span class="kn">from</span> <span class="nn">.image_stitch</span> <span class="kn">import</span> <span class="n">npy2dzi</span><span class="p">,</span> <span class="n">stitch_slides</span>
+<span class="c1">#from .case_prototype import Case</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">generate_output_file_names</span><span class="p">(</span><span class="n">basename</span><span class="p">):</span>
+    <span class="n">out_files</span><span class="o">=</span><span class="nb">dict</span><span class="p">()</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;masks/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.npy&quot;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]]</span><span class="o">+</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;patches/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.npy&quot;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span><span class="s1">&#39;tumor&#39;</span><span class="p">]:</span>
+        <span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;cnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;cnn_embeddings/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">]</span>
+        <span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;graph_data_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;graph_datasets/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">]</span>
+        <span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;gnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;gnn_results/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_map.pkl&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;quality&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;quality_scores/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;ink&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;detected_inks/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">_thumbnail.npy&quot;</span><span class="p">]</span>
+    <span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;nuclei&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;nuclei_results/</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.npy&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out_files</span>
+
+<div class="viewcode-block" id="run_workflow_series"><a class="viewcode-back" href="../../index.html#arctic_ai.workflow.run_workflow_series">[docs]</a><span class="k">def</span> <span class="nf">run_workflow_series</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">compression</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">df_section_pieces_file</span><span class="p">,</span> <span class="n">run_stitch_slide</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs image processing workflow in series on an input image.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    basename : str</span>
+<span class="sd">        The base name of the slide to process.</span>
+<span class="sd">    compression : float</span>
+<span class="sd">        The level of compression to apply to the slide.</span>
+<span class="sd">    overwrite : bool</span>
+<span class="sd">        Whether to overwrite existing files if they exist.</span>
+<span class="sd">    ext : str</span>
+<span class="sd">        The file extension of the slide.</span>
+<span class="sd">    dirname : str</span>
+<span class="sd">        The directory containing the slide and other relevant files.</span>
+<span class="sd">    df_section_pieces_file : str</span>
+<span class="sd">        The file containing information about the patches.</span>
+<span class="sd">    run_stitch_slide : bool</span>
+<span class="sd">        Whether to run the stitch_slides function after all other processing is complete.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    times : dict</span>
+<span class="sd">        A dictionary containing the times at which each step of the workflow was completed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2"> preprocessing&quot;</span><span class="p">)</span>
+
+    <span class="n">out_files</span><span class="o">=</span><span class="n">generate_output_file_names</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+
+    <span class="n">times</span><span class="o">=</span><span class="nb">dict</span><span class="p">()</span>
+    <span class="n">times</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]):</span>
+        <span class="n">preprocess</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">basename</span><span class="p">,</span>
+               <span class="n">threshold</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+               <span class="n">patch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+               <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span>
+               <span class="n">no_break</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">df_section_pieces_file</span><span class="o">=</span><span class="n">df_section_pieces_file</span><span class="p">,</span>
+               <span class="n">image_mask_compression</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span>
+               <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+
+    <span class="n">times</span><span class="p">[</span><span class="s1">&#39;preprocess&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">new_basenames</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]:</span> <span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;cnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;graph_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;gnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">[],[],[]</span>
+    <span class="k">for</span> <span class="n">bn</span> <span class="ow">in</span> <span class="n">new_basenames</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tumor&#39;</span><span class="p">,</span><span class="s1">&#39;macro&#39;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> embedding&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;cnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]):</span>
+                <span class="n">generate_embeddings</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">bn</span><span class="p">,</span>
+                                <span class="n">analysis_type</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                               <span class="n">gpu_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                               <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;cnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> build graph&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;graph_data_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]):</span>
+                <span class="n">create_graph_data</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">bn</span><span class="p">,</span>
+                              <span class="n">analysis_type</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                              <span class="n">radius</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+                              <span class="n">min_component_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+                              <span class="n">no_component_break</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;graph_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bn</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> gnn predict&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;gnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]):</span>
+                <span class="n">predict</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">bn</span><span class="p">,</span>
+                    <span class="n">analysis_type</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                    <span class="n">gpu_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;gnn_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2"> ink detection&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;ink&#39;</span><span class="p">]):</span>
+        <span class="n">detect_inks</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">basename</span><span class="p">,</span>
+                <span class="n">compression</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span>
+                <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span>
+                <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+    <span class="n">times</span><span class="p">[</span><span class="s2">&quot;ink&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2"> stitch&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files_exist_overwrite</span><span class="p">(</span><span class="n">overwrite</span><span class="p">,</span><span class="n">out_files</span><span class="p">[</span><span class="s1">&#39;ink&#39;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">run_stitch_slide</span><span class="p">:</span>
+            <span class="n">stitch_slides</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="n">basename</span><span class="p">,</span>
+                <span class="n">compression</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span>
+                <span class="n">dirname</span><span class="o">=</span><span class="n">dirname</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">[</span><span class="s2">&quot;stitch&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">times</span></div>
+
+
+<span class="k">def</span> <span class="nf">run_series</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="s2">&quot;163_A1&quot;</span><span class="p">,</span>
+               <span class="n">input_dir</span><span class="o">=</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span>
+               <span class="n">compression</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+               <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+               <span class="n">record_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.npy&quot;</span><span class="p">,</span>
+               <span class="n">dirname</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+               <span class="n">df_section_pieces_file</span><span class="o">=</span><span class="s2">&quot;df_section_pieces.pkl&quot;</span><span class="p">,</span>
+               <span class="n">run_stitch_slide</span><span class="o">=</span><span class="kc">True</span>
+               <span class="p">):</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">patient</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)):</span>
+        <span class="n">basename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="c1">#.replace(&quot;.tiff&quot;,&quot;&quot;).replace(&quot;.tif&quot;,&quot;&quot;).replace(&quot;.svs&quot;,&quot;&quot;)</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">run_workflow_series</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span>
+                            <span class="n">compression</span><span class="p">,</span>
+                            <span class="n">overwrite</span><span class="p">,</span>
+                            <span class="n">ext</span><span class="p">,</span>
+                            <span class="n">dirname</span><span class="p">,</span>
+                            <span class="n">df_section_pieces_file</span><span class="p">,</span>
+                            <span class="n">run_stitch_slide</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">record_time</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;times&quot;</span><span class="p">),</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">times</span><span class="p">,</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span><span class="s2">&quot;times&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">),</span><span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Joshua Levy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

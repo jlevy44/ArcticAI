@@ -1,3 +1,9 @@
+"""
+GNN 
+==========
+
+Graph neural network inference for tumor and completeness assessment.
+"""
 import os, torch, pickle, numpy as np, pandas as pd, torch.nn as nn
 from torch_geometric.data import DataLoader as TG_DataLoader
 from torch_geometric.utils import to_dense_batch, to_dense_adj, dense_to_sparse, dropout_adj, to_networkx

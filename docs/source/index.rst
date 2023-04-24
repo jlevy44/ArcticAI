@@ -20,7 +20,34 @@ Welcome to ArcticAI's documentation!
 .. automodule:: arctic_ai.image_stitch
     :members:
 
+.. automodule:: arctic_ai.model_3d
+    :members:
+
+.. automodule:: arctic_ai.tumor_map
+    :members:
+
+.. automodule:: arctic_ai.workflow
+    :members:
+
+.. automodule:: arctic_ai.scale_workflow
+    :members:
+
 .. automodule:: arctic_ai.utils
+    :members:
+
+.. automodule:: arctic_ai.detection_workflows.follicle_detection
+    :members:
+
+.. automodule:: arctic_ai.detection_workflows.nuclei_cli
+    :members:
+
+.. automodule:: arctic_ai.detection_workflows.predict_detection
+    :members:
+
+.. automodule:: arctic_ai.detection_workflows.nuclei_gnn
+    :members:
+
+.. automodule:: arctic_ai.detection_workflows.utils
     :members:
 
 .. autosummary::

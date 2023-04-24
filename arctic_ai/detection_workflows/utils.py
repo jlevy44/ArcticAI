@@ -1,3 +1,7 @@
+"""Nuclei Detection Utils
+==========
+Additional functions to support cell detection. 
+"""
 import os, glob
 import cv2
 import numpy as np
