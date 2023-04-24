@@ -51,7 +51,7 @@ def ink_detect(job, job_dict, memory="50G", cores=8, disk="1M"):
     return result#f"Ink {job_dict['basename']}"
 
 def stitch_images(job, job_dict, memory="50G", cores=8, disk="1M"):
-    command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai ink_detect --basename {job_dict['basename']} --compression 8 --ext {job_dict['ext']}"
+    command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai im2dzi --infile {job_dict['basename']}.npy --compression 4 --ext {job_dict['ext']} --out_dir dzi_files"
     # print(command)
     result=os.popen(command).read()
     return result#f"Ink {job_dict['basename']}"
