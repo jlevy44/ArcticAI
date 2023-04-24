@@ -22,4 +22,8 @@ The package includes a command line interface that can be used to run the Arctic
 
 For more information on how to use the command line interface, please see our wiki: https://github.com/jlevy44/ArcticAI/wiki   
 
+## Web application demo
+
+A web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases can be accessed at the following URL: https://arcticai.demo.levylab.host.dartmouth.edu/.
+
 Thank you for using ArcticAI! 💻🔬🧬
