@@ -26,4 +26,6 @@ For more information on how to use the command line interface, please see our wi
 
 A web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases can be accessed at the following URL: https://arcticai.demo.levylab.host.dartmouth.edu/.
 
+Patent pending, original submission from 2020: https://patentimages.storage.googleapis.com/45/11/5a/717cb5cc2eb269/US20220375604A1.pdf
+
 Thank you for using ArcticAI! 💻🔬🧬
