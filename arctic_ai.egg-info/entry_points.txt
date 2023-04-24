@@ -1,0 +1,2 @@
+[console_scripts]
+arctic_ai = arctic_ai.cli:main

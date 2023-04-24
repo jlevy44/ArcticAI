@@ -33,5 +33,8 @@ RUN python3 -m pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudi
 RUN python3 -m pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
 COPY install_scripts/* /arcticai
 COPY requirements.txt /arcticai
-RUN sh arcticai/*.sh
-RUN pip install -r arcticai/requirements.txt
+COPY additional_requirements.txt /arcticai
+RUN sh install.sh
+RUN pip install -r requirements.txt
+RUN pip install -r additional_requirements.txt
+RUN pip install arctic-ai

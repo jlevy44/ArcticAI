@@ -1,0 +1,7 @@
+DeepZoomTools @ git+https://github.com/openzoom/deepzoom.py.git@dafac125bd8e7ce712abe28c85acdda91f548aeb
+pathpretrain @ git+https://github.com/jlevy44/PathPretrain@6b1172c055c45fb01d80ad02ed6d334247c24e1b
+torch-cluster @ git+https://github.com/rusty1s/pytorch_cluster.git@82e9df944118d7916265ade4fa4f5e1062b1bf48
+torch-geometric==2.2.0
+torch-scatter @ git+https://github.com/rusty1s/pytorch_scatter.git@fa4f442952955acf8fe9fcfb98b600f6ca6081b6
+torch-sparse @ git+https://github.com/rusty1s/pytorch_sparse.git@99735df9ac54b1ae8d46ddf5360da58fd0eeef0c
+detectron2 @ git+https://github.com/facebookresearch/detectron2.git

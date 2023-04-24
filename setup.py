@@ -4,12 +4,7 @@ import subprocess
 import os
 
 with open("requirements.txt") as f:
-      PACKAGES=["tifffile==2021.11.2",
-          "toil",
-          "pyamg",
-          "opencv-contrib-python==4.5.5.62",
-          "kornia @ git+ssh://git@github.com/kornia/kornia.git"
-            ]+f.read().splitlines()
+      PACKAGES=f.read().splitlines()
 
 with open('README.md','r', encoding='utf-8') as f:
       long_description = f.read()

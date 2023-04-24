@@ -1,0 +1,46 @@
+Metadata-Version: 2.1
+Name: arctic-ai
+Version: 0.1
+Summary: Python package for Arctic Workflow. Mirrors jupyter developments.
+Home-page: https://github.com/jlevy44/ArcticAI_Prototype
+Author: Joshua Levy
+Author-email: joshualevy44@berkeley.edu
+License: MIT
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# ArcticAI
+
+Welcome to the ArcticAI wiki! 🎉
+
+ArcticAI is a computational workflow designed to expedite tissue preparation, histological inspection, and tumor mapping to improve solid tumor removal. The package includes a command line interface and a web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases.
+
+## Introduction
+
+Successful treatment of solid cancers relies on complete surgical excision of the tumor either for definitive treatment or before adjuvant therapy. Intraoperative and postoperative radial sectioning, the most common form of margin assessment, can lead to incomplete excision and increase the risk of recurrence and repeat procedures. Mohs Micrographic Surgery (MMS) is associated with complete removal of basal cell and squamous cell carcinoma through real-time margin assessment of 100% of the peripheral and deep margins. Real-time assessment in many tumor types is constrained by tissue size, complexity, and specimen processing / assessment time during general anesthesia.
+
+## Features
+
+This computational workflow places the surgeon, histotechnician, and pathologist in the same virtual space to:
+
+- Reduce the amount of time a histotechnician takes to process tissue and generate pathology reports through 3D modeling techniques and smart grossing recommendations (e.g., reporting of tissue size and where to ink).
+- Improve the efficiency of pathologic analysis through a collection of sophisticated graph neural networks to map tumor and artifacts on whole slide images (WSI) acquired from serial tissue sections.
+- Automatically generate a descriptive and visual pathology report easily interpreted by the surgeon either in real-time or post-operatively.
+
+## Usage
+
+The package includes a command line interface that can be used to run the ArcticAI workflow. Additional documentation for the command line interface can be accessed via the --help flag. API usage can be found at the following URL (readthedocs): https://jlevy44.github.io/ArcticAI/
+
+For more information on how to use the command line interface, please see our wiki: https://github.com/jlevy44/ArcticAI/wiki   
+
+## Web application demo
+
+A web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases can be accessed at the following URL: https://arcticai.demo.levylab.host.dartmouth.edu/.
+
+## Additional information
+
+We are still updating tutorials for running 3D gross tissue recommendations and mapping the tumor back to the surgical site (for now, see the web application). We will also soon provide tutorials on the nuclei and follicle detection workflows.
+
+Patent pending, original submission from 2020: https://patentimages.storage.googleapis.com/45/11/5a/717cb5cc2eb269/US20220375604A1.pdf
+
+Thank you for using ArcticAI! 💻🔬🧬
