@@ -2,7 +2,7 @@
 
 Welcome to the ArcticAI wiki! 🎉
 
-ArcticAI is a computational workflow designed to expedite tissue preparation, histological inspection, and tumor mapping to improve solid tumor removal. The package includes a command line interface and a web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases.
+ArcticAI is a computational workflow designed to expedite tissue preparation, histological inspection, and tumor mapping to improve solid tumor removal. The package includes a command line interface and a web application demonstrating 3D specimen grossing recommendations, histological examination, and mapping of histological results back to the surgical site for select cases. This codebase accompanies the following manuscript under review: https://www.medrxiv.org/content/10.1101/2022.05.06.22274781v1
 
 ## Introduction
 
