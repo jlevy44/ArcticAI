@@ -123,26 +123,34 @@ class Commands(object):
             create_graph_data(basename,analysis_type,radius,min_component_size,no_component_break=no_component_break)
         predict(basename,analysis_type,gpu_id)
 
-    def nuclei_predict(self,
-                   basename: str = "163_A1a",
-                   gpu_id: int = -1) -> None:
-        """
-        Predicts the location of nuclei in an image.
-
-        Parameters
-        ----------
-        basename : str, optional
-            The base filename of the image to be processed. Default is "163_A1a".
-        gpu_id : int, optional
-            The ID of the GPU to use for prediction. Default is -1, which means that the CPU is used.
-
-        Returns
-        -------
-        None
-        """
-        raise NotImplementedError("Removed temporarily, adding back soon")
-        from arctic_ai.nuclei_prediction import predict_nuclei
-        predict_nuclei(basename,gpu_id)
+    def nuclei_predict(self, 
+                       predictor_dir="./", 
+                       predictor_file="", 
+                       patch_file="", 
+                       threshold=0.05, 
+                       savenpy='pred.npy') -> None:
+        '''
+        The nuclei_predict function takes in a set of arguments including predictor_dir, predictor_file, patch_file, threshold, and savenpy. It loads a model from the specified predictor_dir and predictor_file, runs it on a set of patches in patch_file, and saves the output predictions as an npy stack and label dictionary if savenpy is not None. If savexml is not None, it also saves predictions to an ASAP xml.
+        The function loads the model, flips the patches, runs the model on the patches, and saves the predictions in the specified formats if requested.
+        Args:
+            predictor_dir (str): path to model folder
+            predictor_file (str): filename of model in the folder (don't include path to folder)
+            patch_file (str): path to an npy stack of patches
+            classifier_type (BasePredictor): class (from predict.py)
+            panoptic (bool): whether the model performs panoptic segmentation. If false, it is assumed to do instance segmentation.
+            n (int): number of classes the model classifies into 
+            threshold (float): threshold to use for model 
+            savenpy (str): Path to file to which to save npy output. The output is a numpy stack of the the masks for each patch. In the mask, nuclei are given a non-zero integer, the ID of the the instance it is a part of. A pickled dictionary mapping the instance ID to the class label is also outputted. If savenpy=None, predictions are not saved in an npy format. 
+            savexml (str): Path to file to which to save xml output (ASAP format). If savexml=None, predictions are not saved in an xml format. 
+            patch_coords (str): an extra pkl file which specifies the x,y (x is row, y is col) metadata for the patches. Must be provided if exporting to xml, since location is a part of the ASAP format
+        '''
+        # raise NotImplementedError("Removed temporarily, adding back soon")
+        from arctic_ai.detection_workflows.nuclei_cli import detect_from_patches
+        detect_from_patches(predictor_dir=predictor_dir, 
+                       predictor_file=predictor_file, 
+                       patch_file=patch_file, 
+                       threshold=threshold, 
+                       savenpy=savenpy)
 
     def quality_score(self,
                       basename="163_A1a"):
@@ -224,6 +232,41 @@ class Commands(object):
         """
         from arctic_ai.workflow import run_series
         run_series(patient,input_dir,compression,overwrite,record_time,ext,dirname,df_section_pieces_file,run_stitch_slide)
+
+    def run_parallel(self,
+                    patient="163_A1",
+                    input_dir="inputs",
+                    compression=1.,
+                    overwrite=True,
+                    record_time=False,
+                    ext=".npy",
+                    dirname=".",
+                    df_section_pieces_file="df_section_pieces.pkl",
+                    run_stitch_slide=True):
+            """Runs the entire image analysis workflow on a given patient, in parallel using either a local executor or slurm (more executors will be added).
+
+            Parameters
+            ----------
+            patient : str, optional
+                The patient ID to be processed. Default is "163_A1".
+            input_dir : str, optional
+                The directory where the input files are stored. Default is "inputs".
+            compression : float, optional
+                The degree of compression applied to the input image. Default is 1.0.
+            overwrite : bool, optional
+                If True, overwrite existing output files. Default is True.
+            record_time : bool, optional
+                If True, record the time taken for each step of the workflow. Default is False.
+            ext : str, optional
+                The file extension of the input image. Default is ".npy".
+            dirname : str, optional
+                The directory where input and output files are stored. Default is ".".
+            df_section_pieces_file : str, optional
+                The filename of the file containing metadata about image patches. Default is "df_section_pieces.pkl".
+            This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are "163_A1", "inputs", 1.0, True, ".npy", ".", and "df_section_pieces.pkl", respectively.
+            """
+            from arctic_ai.scale_workflow import run_parallel
+            run_parallel(patient,input_dir,compression,overwrite,record_time,ext,dirname,df_section_pieces_file,run_stitch_slide)
 
     def tif2npy(self,
                 in_file='',

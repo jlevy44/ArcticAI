@@ -265,7 +265,8 @@
                    <span class="n">record_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                    <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.npy&quot;</span><span class="p">,</span>
                    <span class="n">dirname</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
-                   <span class="n">df_section_pieces_file</span><span class="o">=</span><span class="s2">&quot;df_section_pieces.pkl&quot;</span><span class="p">):</span>
+                   <span class="n">df_section_pieces_file</span><span class="o">=</span><span class="s2">&quot;df_section_pieces.pkl&quot;</span><span class="p">,</span>
+                   <span class="n">run_stitch_slide</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the entire image analysis workflow on a given patient.</span>
 
 <span class="sd">        Parameters</span>
@@ -289,7 +290,42 @@
 <span class="sd">        This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are &quot;163_A1&quot;, &quot;inputs&quot;, 1.0, True, &quot;.npy&quot;, &quot;.&quot;, and &quot;df_section_pieces.pkl&quot;, respectively.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">arctic_ai.workflow</span> <span class="kn">import</span> <span class="n">run_series</span>
-        <span class="n">run_series</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span><span class="n">input_dir</span><span class="p">,</span><span class="n">compression</span><span class="p">,</span><span class="n">overwrite</span><span class="p">,</span><span class="n">record_time</span><span class="p">,</span><span class="n">ext</span><span class="p">,</span><span class="n">dirname</span><span class="p">,</span><span class="n">df_section_pieces_file</span><span class="p">)</span></div>
+        <span class="n">run_series</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span><span class="n">input_dir</span><span class="p">,</span><span class="n">compression</span><span class="p">,</span><span class="n">overwrite</span><span class="p">,</span><span class="n">record_time</span><span class="p">,</span><span class="n">ext</span><span class="p">,</span><span class="n">dirname</span><span class="p">,</span><span class="n">df_section_pieces_file</span><span class="p">,</span><span class="n">run_stitch_slide</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Commands.run_parallel"><a class="viewcode-back" href="../../index.html#arctic_ai.cli.Commands.run_parallel">[docs]</a>    <span class="k">def</span> <span class="nf">run_parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">patient</span><span class="o">=</span><span class="s2">&quot;163_A1&quot;</span><span class="p">,</span>
+                    <span class="n">input_dir</span><span class="o">=</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span>
+                    <span class="n">compression</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">record_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;.npy&quot;</span><span class="p">,</span>
+                    <span class="n">dirname</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+                    <span class="n">df_section_pieces_file</span><span class="o">=</span><span class="s2">&quot;df_section_pieces.pkl&quot;</span><span class="p">,</span>
+                    <span class="n">run_stitch_slide</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Runs the entire image analysis workflow on a given patient, in parallel using either a local executor or slurm (more executors will be added).</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            patient : str, optional</span>
+<span class="sd">                The patient ID to be processed. Default is &quot;163_A1&quot;.</span>
+<span class="sd">            input_dir : str, optional</span>
+<span class="sd">                The directory where the input files are stored. Default is &quot;inputs&quot;.</span>
+<span class="sd">            compression : float, optional</span>
+<span class="sd">                The degree of compression applied to the input image. Default is 1.0.</span>
+<span class="sd">            overwrite : bool, optional</span>
+<span class="sd">                If True, overwrite existing output files. Default is True.</span>
+<span class="sd">            record_time : bool, optional</span>
+<span class="sd">                If True, record the time taken for each step of the workflow. Default is False.</span>
+<span class="sd">            ext : str, optional</span>
+<span class="sd">                The file extension of the input image. Default is &quot;.npy&quot;.</span>
+<span class="sd">            dirname : str, optional</span>
+<span class="sd">                The directory where input and output files are stored. Default is &quot;.&quot;.</span>
+<span class="sd">            df_section_pieces_file : str, optional</span>
+<span class="sd">                The filename of the file containing metadata about image patches. Default is &quot;df_section_pieces.pkl&quot;.</span>
+<span class="sd">            This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are &quot;163_A1&quot;, &quot;inputs&quot;, 1.0, True, &quot;.npy&quot;, &quot;.&quot;, and &quot;df_section_pieces.pkl&quot;, respectively.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="kn">from</span> <span class="nn">arctic_ai.scale_workflow</span> <span class="kn">import</span> <span class="n">run_parallel</span>
+            <span class="n">run_parallel</span><span class="p">(</span><span class="n">patient</span><span class="p">,</span><span class="n">input_dir</span><span class="p">,</span><span class="n">compression</span><span class="p">,</span><span class="n">overwrite</span><span class="p">,</span><span class="n">record_time</span><span class="p">,</span><span class="n">ext</span><span class="p">,</span><span class="n">dirname</span><span class="p">,</span><span class="n">df_section_pieces_file</span><span class="p">,</span><span class="n">run_stitch_slide</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Commands.tif2npy"><a class="viewcode-back" href="../../index.html#arctic_ai.cli.Commands.tif2npy">[docs]</a>    <span class="k">def</span> <span class="nf">tif2npy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">in_file</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>

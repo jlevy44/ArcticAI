@@ -51,6 +51,7 @@
 <li><a class="reference internal" href="#arctic_ai.cli.Commands.ink_detect"><code class="docutils literal notranslate"><span class="pre">Commands.ink_detect()</span></code></a></li>
 <li><a class="reference internal" href="#arctic_ai.cli.Commands.nuclei_predict"><code class="docutils literal notranslate"><span class="pre">Commands.nuclei_predict()</span></code></a></li>
 <li><a class="reference internal" href="#arctic_ai.cli.Commands.preprocess"><code class="docutils literal notranslate"><span class="pre">Commands.preprocess()</span></code></a></li>
+<li><a class="reference internal" href="#arctic_ai.cli.Commands.run_parallel"><code class="docutils literal notranslate"><span class="pre">Commands.run_parallel()</span></code></a></li>
 <li><a class="reference internal" href="#arctic_ai.cli.Commands.run_series"><code class="docutils literal notranslate"><span class="pre">Commands.run_series()</span></code></a></li>
 <li><a class="reference internal" href="#arctic_ai.cli.Commands.tif2npy"><code class="docutils literal notranslate"><span class="pre">Commands.tif2npy()</span></code></a></li>
 </ul>
@@ -138,10 +139,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.preprocess" title="arctic_ai.cli.Commands.preprocess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocess</span></code></a>([basename, threshold, ...])</p></td>
 <td><p>Preprocesses an image and generates patches for training or testing.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.run_series" title="arctic_ai.cli.Commands.run_series"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_series</span></code></a>([patient, input_dir, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.run_parallel" title="arctic_ai.cli.Commands.run_parallel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_parallel</span></code></a>([patient, input_dir, ...])</p></td>
+<td><p>Runs the entire image analysis workflow on a given patient, in parallel using either a local executor or slurm (more executors will be added).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.run_series" title="arctic_ai.cli.Commands.run_series"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_series</span></code></a>([patient, input_dir, ...])</p></td>
 <td><p>Runs the entire image analysis workflow on a given patient.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.tif2npy" title="arctic_ai.cli.Commands.tif2npy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tif2npy</span></code></a>([in_file, out_dir])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#arctic_ai.cli.Commands.tif2npy" title="arctic_ai.cli.Commands.tif2npy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tif2npy</span></code></a>([in_file, out_dir])</p></td>
 <td><p>Converts a .tif file to a .npy file.</p></td>
 </tr>
 </tbody>
@@ -335,8 +339,37 @@ Default is “./”.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="arctic_ai.cli.Commands.run_parallel">
+<span class="sig-name descname"><span class="pre">run_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inputs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df_section_pieces.pkl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_stitch_slide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.run_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.run_parallel" title="Permalink to this definition"></a></dt>
+<dd><p>Runs the entire image analysis workflow on a given patient, in parallel using either a local executor or slurm (more executors will be added).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>patient</strong><span class="classifier">str, optional</span></dt><dd><p>The patient ID to be processed. Default is “163_A1”.</p>
+</dd>
+<dt><strong>input_dir</strong><span class="classifier">str, optional</span></dt><dd><p>The directory where the input files are stored. Default is “inputs”.</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier">float, optional</span></dt><dd><p>The degree of compression applied to the input image. Default is 1.0.</p>
+</dd>
+<dt><strong>overwrite</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, overwrite existing output files. Default is True.</p>
+</dd>
+<dt><strong>record_time</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, record the time taken for each step of the workflow. Default is False.</p>
+</dd>
+<dt><strong>ext</strong><span class="classifier">str, optional</span></dt><dd><p>The file extension of the input image. Default is “.npy”.</p>
+</dd>
+<dt><strong>dirname</strong><span class="classifier">str, optional</span></dt><dd><p>The directory where input and output files are stored. Default is “.”.</p>
+</dd>
+<dt><strong>df_section_pieces_file</strong><span class="classifier">str, optional</span></dt><dd><p>The filename of the file containing metadata about image patches. Default is “df_section_pieces.pkl”.</p>
+</dd>
+<dt><strong>This method runs the entire image analysis workflow on a given patient, with options to customize the input and output directories, degree of image compression, file extension, and whether to overwrite existing output files. If record_time is set to True, the time taken for each step of the workflow will be recorded. The default values for patient, input_dir, compression, overwrite, ext, dirname, and df_section_pieces_file are “163_A1”, “inputs”, 1.0, True, “.npy”, “.”, and “df_section_pieces.pkl”, respectively.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="arctic_ai.cli.Commands.run_series">
-<span class="sig-name descname"><span class="pre">run_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inputs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df_section_pieces.pkl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.run_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.run_series" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'163_A1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'inputs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.npy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dirname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_section_pieces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df_section_pieces.pkl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_stitch_slide</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/arctic_ai/cli.html#Commands.run_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#arctic_ai.cli.Commands.run_series" title="Permalink to this definition"></a></dt>
 <dd><p>Runs the entire image analysis workflow on a given patient.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

@@ -19,37 +19,37 @@ def generate_output_file_names(basename):
 
 def preprocess(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai preprocess --basename {job_dict['basename']} --threshold 0.05 --patch_size 256 --ext {job_dict['ext']} --compression {job_dict['compression']}"
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"Preprocessed {job_dict['basename']}"
 
 def embed(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai cnn_predict --basename {job_dict['basename']} --analysis_type {job_dict['analysis_type']} --gpu_id -1"
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"Embed CNN {job_dict['analysis_type']} {job_dict['basename']}"
 
 def gnn_predict(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai gnn_predict --basename {job_dict['basename']} --analysis_type {job_dict['analysis_type']} --radius 256 --min_component_size 600 --gpu_id -1 --generate_graph True"
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"GNN Predict {job_dict['analysis_type']} {job_dict['basename']}"
 
 def gen_quality_scores(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai quality_score --basename {job_dict['basename']} "
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"Quality {job_dict['basename']}"
 
 def ink_detect(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai ink_detect --basename {job_dict['basename']} --compression 8 --ext {job_dict['ext']}"
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"Ink {job_dict['basename']}"
 
 def stitch_images(job, job_dict, memory="50G", cores=8, disk="1M"):
     command=f"cd {job_dict['job_dir']} && {job_dict['singularity_preamble']} arctic_ai ink_detect --basename {job_dict['basename']} --compression 8 --ext {job_dict['ext']}"
-    print(command)
+    # print(command)
     result=os.popen(command).read()
     return result#f"Ink {job_dict['basename']}"
 
@@ -72,9 +72,9 @@ def deploy_patient(job, job_dict, memory="2G", cores=2, disk="1M"):
         embed_jobs[k].addChild(gnn_predict_jobs[k])
     jobs['embed']=embed_jobs
     jobs['gnn']=gnn_predict_jobs
-    quality_job=job.addChildJobFn(gen_quality_scores, job_dict, memory, cores, disk)
-    for k in ['tumor','macro']:
-        gnn_predict_jobs[k].addChild(quality_job)
+    # quality_job=job.addChildJobFn(gen_quality_scores, job_dict, memory, cores, disk)
+    # for k in ['tumor','macro']:
+    #     gnn_predict_jobs[k].addChild(quality_job)
     ink_job=job.addChildJobFn(ink_detect, job_dict, memory, cores, disk)
     jobs['preprocess'].addChild(ink_job)
     jobs['preprocess'].addChild(nuclei_job)
@@ -82,14 +82,10 @@ def deploy_patient(job, job_dict, memory="2G", cores=2, disk="1M"):
     return f"Processed {job_dict['basename']}"
 
 def setup_deploy(job, job_dict, memory="2G", cores=2, disk="3G"):
-    print(job_dict)
     os.chdir(job_dict['job_dir'])
-    print(os.getcwd())
     jobs=[]
-    print(os.path.join(job_dict['input_dir'],f"{job_dict['patient']}*{job_dict['ext']}"))
-    print(glob.glob(os.path.join(job_dict['input_dir'],f"{job_dict['patient']}*{job_dict['ext']}")))
     for f in glob.glob(os.path.join(job_dict['input_dir'],f"{job_dict['patient']}*{job_dict['ext']}")):
-        print(f)
+        # print(f)
         basename=os.path.basename(f).replace(job_dict['ext'],"")
         job_dict_f=dict(basename=basename, 
                         compression=job_dict['compression'], 
@@ -110,34 +106,83 @@ def run_parallel(patient="",
                record_time=False,
                extract_dzi=False,
                ext=".tif",
-               job_dir="/dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/BCC_test_study",
+               job_dir="./",
                restart=False,
                logfile="",
                loglevel="",
-               singularity_preamble="source ~/.bashrc && export SINGULARITYENV_CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES && export SINGULARITYENV_PREPEND_PATH=/dartfs-hpc/rc/home/w/f003k8w/.local/bin/ && singularity  exec --nv -B $(pwd)  -B /scratch/ -B $(realpath ../../../..)  --bind ${HOME}:/mnt  /dartfs/rc/lab/V/VaickusL_slow/singularity_containers/PathFlow/pathflowgcn_new.img",
-               slurm_args="--export=ALL --gres=gpu:1 --account=qdp-alpha --partition=v100_12 --nodes=1 --gpu_cmode=shared --ntasks-per-node=1 --time=1:00:00",#
+               cuda_visible_devices="$CUDA_VISIBLE_DEVICES",
+               singularity_img_path="arcticai.img",
                run_slurm=False,
                cores=2,
                memory="60G",
-               disk="3G"):
-    # to be run here: /dartfs/rc/lab/V/VaickusL_slow/users/jlevy/arctic_ai/BCC_test_study
-    # toil clean toilWorkflowRun
-    # python 7_toil_local_series_run.py
-    # python 7_toil_local_series_run.py --run_slurm True
-    # python 7_toil_local_series_run.py --restart
-    # python 7_toil_local_series_run.py  --loglevel DEBUG  --patient 336_A1 # --logfile t.log
-    # python 7_toil_local_series_run.py --patient 336_A1
-    # for i in $(seq 2) ; do submit-job run-slurm-job -a "hostname" -a "echo GPU=\$CUDA_VISIBLE_DEVICES" -c "sleep 3h" -t 3 -acc qdp-alpha -p v100_12 --ppn 8 -t 12 -n 1 -ng 4 -gsm shared -mem 500 ; done
-    # export CUDA_VISIBLE_DEVICES=$(($RANDOM % 4))
-    # toil clean toilWorkflowRun &&  python 7_toil_local_series_run.py --patient 336_A1
-    # TODO: Error out on bad os.system calls and pipe output
-    # TODO: add TOIL SLURM environ input and singularity preamble
-    # TODO: change memory reqs per job
-    # TODO: Slurm executor
-    # TODO: divide up even further?
-    # TODO: DAG image export by writing connections to dag file and plotting
-    # TODO: Throw error if output file not found
-    # TODO: only using 1 gpu, need to split up, will fail on a few tasks, also launch more jobs at a time and asynchronous execution
+               disk="3G",
+               cuda_device="$(($RANDOM % 4))",
+               prepend_path="$(realpath ~)/.local/bin/",
+               slurm_gpus=1,
+               slurm_account="qdp-alpha",
+               slurm_partition="v100_12",
+               time=1,
+               gpu_cmode="exclusive"):
+    """
+    Runs the image processing workflow in parallel across multiple tissue sections simultaneously.
+
+    Parameters:
+    -----------
+    patient : str, optional
+        The patient identifier. Default is an empty string.
+    input_dir : str, optional
+        The directory containing the input images. Default is 'inputs'.
+    scheme : str, optional
+        The grid scheme used for image processing. Default is '2/1'.
+    compression : float, optional
+        The compression level for the output images. Default is 6.0.
+    overwrite : bool, optional
+        Whether or not to overwrite existing output files. Default is True.
+    record_time : bool, optional
+        Whether or not to record the processing time for each image. Default is False.
+    extract_dzi : bool, optional
+        Whether or not to extract deep zoom images. Default is False.
+    ext : str, optional
+        The file extension for input images. Default is '.tif'.
+    job_dir : str, optional
+        The directory for job management. Default is './'.
+    restart : bool, optional
+        Whether or not to restart a previous job. Default is False.
+    logfile : str, optional
+        The path to the log file. Default is an empty string.
+    loglevel : str, optional
+        The level of verbosity for logging. Default is an empty string.
+    cuda_visible_devices : str, optional
+        The value for the CUDA_VISIBLE_DEVICES environment variable. Default is '$CUDA_VISIBLE_DEVICES'.
+    singularity_img_path : str, optional
+        The path to the Singularity image file. Default is 'arcticai.img'.
+    run_slurm : bool, optional
+        Whether or not to run the job using the Slurm scheduler. Default is False.
+    cores : int, optional
+        The number of CPU cores to use. Default is 2.
+    memory : str, optional
+        The amount of memory to allocate for each job. Default is '60G'.
+    disk : str, optional
+        The amount of disk space to allocate for each job. Default is '3G'.
+    cuda_device : str, optional
+        The value for the CUDA device ID. Default is '$(($RANDOM % 4))'.
+    prepend_path : str, optional
+        The value for the PREPEND_PATH environment variable. Default is '$(realpath ~)/.local/bin/'.
+    slurm_gpus : int, optional
+        The number of GPUs to allocate when running the job on a Slurm cluster. Default is 1.
+    slurm_account : str, optional
+        The name of the Slurm account to use. Default is 'qdp-alpha'.
+    slurm_partition : str, optional
+        The name of the Slurm partition to use. Default is 'v100_12'.
+    time : int, optional
+        The maximum amount of time to allocate for the job, in hours. Default is 1.
+    gpu_cmode : str, optional
+        Slurm option that controls GPU sharing mode between multiple users. Default is exclusive though can be toggled to shared
+    """
+    singularity_preamble=f"source ~/.bashrc && export SINGULARITYENV_CUDA_VISIBLE_DEVICES={cuda_visible_devices} && export SINGULARITYENV_PREPEND_PATH={prepend_path} && singularity  exec --nv -B $(pwd)  -B /scratch/  --bind ${HOME}:/mnt  {singularity_img_path}"
+    slurm_args=f"--export=ALL --gres=gpu:{slurm_gpus} --account={slurm_account} --partition={slurm_partition} --nodes=1 --ntasks-per-node=1 --time={time}:00:00 "
+    if gpu_cmode=="shared":
+        slurm_args+="--gpu_cmode=shared"
     options = Job.Runner.getDefaultOptions("./toilWorkflowRun")
     options.restart=restart
     options.defaultCores=cores
@@ -152,7 +197,7 @@ def run_parallel(patient="",
         options.maxLocalJobs = 100
         options.targetTime = 1
     else:
-        singularity_preamble="export CUDA_VISIBLE_DEVICES=$(($RANDOM % 4)) &&"+singularity_preamble
+        singularity_preamble=f"export CUDA_VISIBLE_DEVICES={cuda_device} &&"+singularity_preamble
     if loglevel: options.logLevel=loglevel
     if logfile: options.logFile=logfile
     job_dict=dict(patient=patient,
@@ -167,7 +212,6 @@ def run_parallel(patient="",
                singularity_preamble=singularity_preamble)
     j = Job.wrapJobFn(setup_deploy, job_dict)
     rv = Job.Runner.startToil(j, options)
-    print(rv)
 
-if __name__=="__main__":
-    fire.Fire(run_parallel)
+# if __name__=="__main__":
+#     fire.Fire(run_parallel)
